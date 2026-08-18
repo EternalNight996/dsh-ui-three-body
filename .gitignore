@@ -1,0 +1,5 @@
+node_modules/
+*.log
+.DS_Store
+# client 构建产物可选提交；若想纯源码发布则取消下一行注释
+# lib/client.js
