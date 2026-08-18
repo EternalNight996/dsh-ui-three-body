@@ -78,12 +78,20 @@ pnpm build      # 生成 lib/client.js
 
 ## 设置项
 
+> **首次使用会弹「驯兽师 · 首次唤醒」引导**，让用户先定下语气/自称/称呼等规矩，之后可随时回「设置 → 插件 → 驯兽场」改。
+
 | 字段 | 默认 | 说明 |
 | --- | --- | --- |
 | `enabled` | `true` | 驯兽场总开关（内核注入） |
 | `mode` | `balanced` | 内核档位：minimal / balanced / full |
+| `lang` | `zh` | 内核语言：zh / en |
+| `tone` | `arrogant` | 语气：arrogant 傲慢 / gentle 温和 / warm 热忱 |
+| `selfName` | `本尊` | 驯兽师自称（可自由填写） |
+| `userTitle` | `主上` | 驯兽师对你的称呼（可自由填写） |
 | `petEnabled` | `true` | 悬浮萌宠是否显示 |
-| `kernelOverride` | `''` | 自定义内核文本（优先级高于 mode） |
+| `analyzeTool` | `false` | beast_analyze 需求剖析工具（默认关，省 token） |
+| `kernelOverride` | `''` | 自定义内核文本（优先级高于以上所有） |
+| `onboarded` | `false` | 是否已完成首次引导（内部字段） |
 
 ---
 
@@ -103,7 +111,7 @@ pnpm build      # 生成 lib/client.js
 1. **萌宠立绘** ⭐ 最关键：`assets/pet.svg` 是占位圆脸小兽，`BeastPet` 用 emoji（💤🐾🔥 三态情绪已实现）。换立绘 / 上 Lottie / 3D 的路线见 [`docs/MASCOT.md`](docs/MASCOT.md)。
 2. ~~萌宠位置 & 持久化~~ ✅ 已做：默认右侧中间、长按拖拽、`petPos` 持久化到 settings 文件。
 3. **发布元数据**：把 `package.json` 的 `<你的用户名>` 换成真实 GitHub 用户名；然后按 [`PUBLISH.md`](PUBLISH.md) 走 git push + npm publish。
-4. ~~品牌人设~~ ✅ 已做：内核改为「驯兽师」——自称「本尊」、称呼「主上」、语气傲慢。
+4. ~~品牌人设~~ ✅ 已做：内核「驯兽师」人设，且语气/自称/称呼**首次使用时弹窗可选可填**（不再写死）。
 5. ~~多语言~~ ✅ 已做：内核中英双语 + 设置页/萌宠走 `locale` 服务中英切换。
 6. ~~需求剖析工具~~ ✅ 已做：`beast_analyze`（默认关，设置页可开），设计见 [`docs/ANALYZE.md`](docs/ANALYZE.md)。
 7. **训练数据/反馈闭环**：长线方案见 [`docs/TRAINING.md`](docs/TRAINING.md)（捕获反馈 → 沉淀偏好 → 召回注入，Phase 1 可先行）。

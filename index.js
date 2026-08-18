@@ -21,10 +21,14 @@ export const Config = z.object({
   enabled: z.boolean().default(true),
   mode: z.union(['minimal', 'balanced', 'full']).default('balanced'),
   lang: z.union(['zh', 'en']).default('zh'),
+  tone: z.union(['arrogant', 'gentle', 'warm']).default('arrogant'),
+  selfName: z.string().default('本尊'),
+  userTitle: z.string().default('主上'),
   petEnabled: z.boolean().default(true),
   petPos: z.union([z.object({ x: z.number(), y: z.number() }), z.null()]).default(null),
   analyzeTool: z.boolean().default(false),
   kernelOverride: z.string().default(''),
+  onboarded: z.boolean().default(false),
 })
 
 export function apply(ctx, config) {
@@ -37,7 +41,11 @@ export function apply(ctx, config) {
     const resolveText = (cfg) => {
       const override = cfg && typeof cfg.kernelOverride === 'string' ? cfg.kernelOverride.trim() : ''
       if (override) return override
-      return kernelForMode(cfg && cfg.mode, cfg && cfg.lang)
+      return kernelForMode(cfg && cfg.mode, cfg && cfg.lang, {
+        tone: cfg && cfg.tone,
+        selfName: cfg && cfg.selfName,
+        userTitle: cfg && cfg.userTitle,
+      })
     }
 
     const refresh = (cfg) => {

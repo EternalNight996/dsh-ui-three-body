@@ -6,7 +6,7 @@
 // 通过 `settingsScope` 读写 host 侧的 `beast-tamer` 设置命名空间（持久化到 settings 文件）；
 // 通过 `locale` 做中英双语；通过 `sessions` 读取当前会话 running 状态驱动情绪态。
 
-import React, { useCallback, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import React, { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 
 const NS = 'beast-tamer'
 
@@ -32,11 +32,28 @@ const ZH = {
   tLang: '内核语言',
   langZh: '中文',
   langEn: 'English',
+  tTone: '语气',
+  toneArrogant: '傲慢',
+  toneGentle: '温和',
+  toneWarm: '热忱',
+  tSelf: '自称',
+  tSelfHint: '驯兽师如何自称（本尊 / 我 / 在下…）',
+  tMaster: '称呼你',
+  tMasterHint: '驯兽师如何称呼你（主上 / 你 / 大人…）',
   tAnalyze: '需求剖析工具 beast_analyze',
   tAnalyzeHint: '开启后可用工具一键生成规范 markdown 计划（每次多一次模型调用）。',
   tOverride: '内核覆盖（可选）',
   tOverrideHint: '留空使用上方档位的内核；粘贴自定义文本则优先使用。',
   overridePlaceholder: '在此粘贴自定义驯兽师内核…',
+  obTitle: '驯兽师 · 首次唤醒',
+  obIntro: '本尊苏醒前，先听主上定下规矩。',
+  obTone: '语气',
+  obSelf: '自称',
+  obMaster: '如何称呼你',
+  obLang: '内核语言',
+  obMode: '内核档位',
+  obStart: '开始驯兽',
+  obSkip: '先用默认',
 }
 const EN = {
   nav: 'Beast Ground',
@@ -55,11 +72,28 @@ const EN = {
   tLang: 'Kernel language',
   langZh: '中文',
   langEn: 'English',
+  tTone: 'Tone',
+  toneArrogant: 'Arrogant',
+  toneGentle: 'Gentle',
+  toneWarm: 'Warm',
+  tSelf: 'Self-name',
+  tSelfHint: 'How the Tamer refers to itself (this one / I / ...)',
+  tMaster: 'Your title',
+  tMasterHint: 'How the Tamer addresses you (Master / you / ...)',
   tAnalyze: 'beast_analyze tool',
   tAnalyzeHint: 'Generate a canonical markdown plan in one tool call (costs one extra model call each time).',
   tOverride: 'Kernel override (optional)',
   tOverrideHint: 'Empty uses the level above; pasted text takes priority.',
   overridePlaceholder: 'Paste your custom Beast Tamer kernel…',
+  obTitle: 'Beast Tamer · First Awakening',
+  obIntro: 'Before I wake, set the rules, Master.',
+  obTone: 'Tone',
+  obSelf: 'Self-name',
+  obMaster: 'How to address you',
+  obLang: 'Kernel language',
+  obMode: 'Kernel level',
+  obStart: 'Begin taming',
+  obSkip: 'Use defaults',
 }
 
 // zustand 式快照 scope → useSyncExternalStore 稳定订阅。
@@ -226,6 +260,22 @@ function Field({ label, children }) {
     children)
 }
 
+function TextInput({ value, onChange, placeholder, hint }) {
+  return React.createElement('div', { style: { display: 'flex', flexDirection: 'column', gap: 8 } },
+    hint ? React.createElement('span', { style: { fontSize: 12, opacity: 0.6 } }, hint) : null,
+    React.createElement('input', {
+      value: value || '',
+      onChange: (e) => onChange(e.target.value),
+      placeholder,
+      style: {
+        width: '100%', boxSizing: 'border-box', padding: '8px 10px', borderRadius: 8,
+        border: '1px solid rgba(120,120,120,0.3)', background: 'transparent',
+        fontFamily: 'inherit', fontSize: 13,
+      },
+    }),
+  )
+}
+
 // ── 设置标签页 ──────────────────────────────────────────────────────────────
 function BeastSettings({ scope, t }) {
   const snap = useScope(scope)
@@ -246,6 +296,18 @@ function BeastSettings({ scope, t }) {
       value: value.lang || 'zh', onChange: (v) => scope.set('lang', v),
       options: [['zh', t('langZh')], ['en', t('langEn')]],
     })),
+    Field({ label: t('tTone') }, Seg({
+      value: value.tone || 'arrogant', onChange: (v) => scope.set('tone', v),
+      options: [['arrogant', t('toneArrogant')], ['gentle', t('toneGentle')], ['warm', t('toneWarm')]],
+    })),
+    Field({ label: t('tSelf') }, TextInput({
+      value: value.selfName, onChange: (v) => scope.set('selfName', v),
+      placeholder: '本尊', hint: t('tSelfHint'),
+    })),
+    Field({ label: t('tMaster') }, TextInput({
+      value: value.userTitle, onChange: (v) => scope.set('userTitle', v),
+      placeholder: '主上', hint: t('tMasterHint'),
+    })),
     Row({ label: t('tAnalyze'), hint: t('tAnalyzeHint'), checked: value.analyzeTool === true, onChange: (v) => scope.set('analyzeTool', v) }),
     Field({ label: t('tOverride'), children: [
       React.createElement('span', { key: 'h', style: { fontSize: 12, opacity: 0.6 } }, t('tOverrideHint')),
@@ -263,6 +325,62 @@ function BeastSettings({ scope, t }) {
   )
 }
 
+// ── 首次唤醒弹窗（首次使用时，让用户定下语气/自称/称呼等规矩）────────────
+function FirstRunModal({ scope, t }) {
+  const snap = useScope(scope)
+  const value = snap && snap.value && typeof snap.value === 'object' ? snap.value : null
+  const [tone, setTone] = useState('arrogant')
+  const [selfName, setSelfName] = useState('本尊')
+  const [userTitle, setUserTitle] = useState('主上')
+  const [lang, setLang] = useState('zh')
+  const [mode, setMode] = useState('balanced')
+  const [init, setInit] = useState(false)
+
+  useEffect(() => {
+    if (value && !init) {
+      setTone(value.tone || 'arrogant')
+      setSelfName(value.selfName || '本尊')
+      setUserTitle(value.userTitle || '主上')
+      setLang(value.lang || 'zh')
+      setMode(value.mode || 'balanced')
+      setInit(true)
+    }
+  }, [value, init])
+
+  if (!value || value.onboarded !== false) return null
+
+  const finish = (useDefaults) => {
+    if (!useDefaults) {
+      scope.set('tone', tone)
+      scope.set('selfName', (selfName || '').trim() || '本尊')
+      scope.set('userTitle', (userTitle || '').trim() || '主上')
+      scope.set('lang', lang)
+      scope.set('mode', mode)
+    }
+    scope.set('onboarded', true)
+  }
+
+  return React.createElement('div', {
+    style: { position: 'fixed', inset: 0, zIndex: 200000, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 },
+  },
+    React.createElement('div', {
+      style: { background: 'rgba(17,24,39,0.96)', color: '#f3f4f6', borderRadius: 16, padding: 24, maxWidth: 420, width: '100%', boxShadow: '0 24px 64px rgba(0,0,0,0.45)' },
+    },
+      React.createElement('div', { style: { fontSize: 18, fontWeight: 700, marginBottom: 4 } }, t('obTitle')),
+      React.createElement('div', { style: { fontSize: 13, opacity: 0.7, marginBottom: 20 } }, t('obIntro')),
+      Field({ label: t('obTone') }, Seg({ value: tone, onChange: setTone, options: [['arrogant', t('toneArrogant')], ['gentle', t('toneGentle')], ['warm', t('toneWarm')]] })),
+      Field({ label: t('obSelf') }, TextInput({ value: selfName, onChange: setSelfName, placeholder: '本尊' })),
+      Field({ label: t('obMaster') }, TextInput({ value: userTitle, onChange: setUserTitle, placeholder: '主上' })),
+      Field({ label: t('obLang') }, Seg({ value: lang, onChange: setLang, options: [['zh', t('langZh')], ['en', t('langEn')]] })),
+      Field({ label: t('obMode') }, Seg({ value: mode, onChange: setMode, options: [['minimal', t('modeMinimal')], ['balanced', t('modeBalanced')], ['full', t('modeFull')]] })),
+      React.createElement('div', { style: { display: 'flex', gap: 10, marginTop: 24 } },
+        React.createElement('button', { onClick: () => finish(false), style: { flex: 1, padding: '10px 14px', borderRadius: 10, border: 'none', background: '#10b981', color: '#fff', fontWeight: 600, cursor: 'pointer' } }, t('obStart')),
+        React.createElement('button', { onClick: () => finish(true), style: { padding: '10px 14px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.2)', background: 'transparent', color: '#f3f4f6', cursor: 'pointer' } }, t('obSkip')),
+      ),
+    ),
+  )
+}
+
 // ── apply ───────────────────────────────────────────────────────────────────
 export function apply(ctx) {
   ctx.effect(() => ctx.locale.register(NS, { zh: ZH, en: EN }), 'beast-tamer: locale dictionaries')
@@ -272,6 +390,18 @@ export function apply(ctx) {
   const scope = ctx.settingsScope.bind({ namespace: NS })
   const petInject = { scope, sessions: ctx.sessions, t }
   const settingsInject = { scope, t }
+  const onboardInject = { scope, t }
+
+  // 首次唤醒弹窗（order 高于萌宠；onboarded=false 时盖全屏，完成即收起）。
+  ctx.effect(
+    () => ctx.slots.inject('shell.overlay', function* () {
+      yield ctx.slots.register(
+        { name: 'shell.overlay', id: 'beast-tamer-onboard', order: 100, inject: () => onboardInject },
+        FirstRunModal,
+      )
+    }),
+    'beast-tamer: first-run onboarding',
+  )
 
   // 悬浮萌宠（root 层 frame 级浮层，高于各列、不遮挡按钮）。
   ctx.effect(
