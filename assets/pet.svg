@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96" fill="none">
+  <!-- 驯兽师萌宠占位图：圆脸小兽 + 一缕呆毛 + 温和眨眼。可替换为你自己的立绘。 -->
+  <circle cx="48" cy="50" r="36" fill="#fbbf24"/>
+  <circle cx="48" cy="50" r="36" fill="url(#shade)" opacity="0.12"/>
+  <path d="M48 15 C44 8 52 8 48 15 Z" fill="#b45309"/>
+  <path d="M28 30 Q24 20 32 18 Q38 22 34 30 Z" fill="#f59e0b"/>
+  <path d="M68 30 Q72 20 64 18 Q58 22 62 30 Z" fill="#f59e0b"/>
+  <circle cx="36" cy="48" r="4.5" fill="#1f2937"/>
+  <circle cx="60" cy="48" r="4.5" fill="#1f2937"/>
+  <circle cx="37.5" cy="46.5" r="1.5" fill="#fff"/>
+  <circle cx="61.5" cy="46.5" r="1.5" fill="#fff"/>
+  <path d="M44 60 Q48 65 52 60" stroke="#1f2937" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <path d="M40 66 Q48 70 56 66" stroke="#f59e0b" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <defs>
+    <radialGradient id="shade" cx="0.35" cy="0.3" r="0.9">
+      <stop offset="0" stop-color="#fff"/>
+      <stop offset="1" stop-color="#000"/>
+    </radialGradient>
+  </defs>
+</svg>
