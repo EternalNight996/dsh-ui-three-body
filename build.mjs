@@ -35,6 +35,7 @@ await build({
   target: 'es2022',
   external: externals,
   jsx: 'automatic',
+  minify: true,
   logLevel: 'info',
 })
 

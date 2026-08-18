@@ -7,8 +7,17 @@
 // 通过 `locale` 做中英双语；通过 `sessions` 读取当前会话 running 状态驱动情绪态。
 
 import React, { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import lottie from 'lottie-web/build/player/lottie_light'
+import idleAnim from '../../assets/pet-idle.json'
+import workAnim from '../../assets/pet-work.json'
+import sleepAnim from '../../assets/pet-sleep.json'
 
 const NS = 'beast-tamer'
+
+// 情绪态 → Lottie 动画（可替换成真实导出；结构/尺寸建议 96×96）。
+const ANIMS = { idle: idleAnim, work: workAnim, sleep: sleepAnim }
+// emoji 兜底（lottie 加载失败时使用）。
+const FACES = { idle: '🐾', work: '🔥', sleep: '💤' }
 
 // settingsScope.bind 内部会 ctx.get('connection') / ctx.get('remote')，
 // sessions 提供当前会话 running 信号；locale 提供中英双语。
@@ -149,8 +158,31 @@ function BeastPet({ scope, sessions, t }) {
   if (!petEnabled) return null
 
   const state = !enabled ? 'sleep' : running ? 'work' : 'idle'
-  const face = state === 'sleep' ? '💤' : state === 'work' ? '🔥' : '🐾'
+  const face = FACES[state]
   const title = state === 'sleep' ? t('petSleep') : state === 'work' ? t('petWorking') : t('petAwake')
+  const containerRef = useRef(null)
+  const [lottieOk, setLottieOk] = useState(true)
+
+  // 按情绪态加载对应 Lottie 动画；失败则回退 emoji。
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el || !lottieOk) return undefined
+    let anim
+    try {
+      anim = lottie.loadAnimation({
+        container: el,
+        renderer: 'svg',
+        loop: true,
+        autoplay: state !== 'sleep',
+        animationData: ANIMS[state] || ANIMS.idle,
+      })
+      if (state === 'sleep') anim.goToAndStop(0, true)
+      return () => anim.destroy()
+    } catch {
+      setLottieOk(false)
+      return undefined
+    }
+  }, [state, lottieOk])
 
   // 长按拖拽：按住 280ms 后进入拖拽态；快速点按 = 切换内核。
   const onPointerDown = (e) => {
@@ -200,20 +232,13 @@ function BeastPet({ scope, sessions, t }) {
         background: state === 'work' ? 'rgba(251,146,60,0.14)' : 'rgba(34,34,34,0.06)',
         filter: state === 'sleep' ? 'grayscale(1) opacity(0.55)' : 'none',
         boxShadow: state === 'work' ? '0 0 0 4px rgba(251,146,60,0.18)' : 'none',
-        transition: 'filter 0.2s ease, background 0.2s ease, box-shadow 0.2s ease',
-        animation: state === 'work'
-          ? 'beast-pulse 1.1s ease-in-out infinite'
-          : state === 'idle'
-            ? 'beast-bob 3s ease-in-out infinite'
-            : reacting ? 'beast-pop 0.4s ease' : 'none',
+        transition: 'filter 0.2s ease, background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease',
         transform: reacting ? 'scale(1.18)' : 'scale(1)',
       },
     },
-    React.createElement('style', null,
-      '@keyframes beast-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}' +
-      '@keyframes beast-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}' +
-      '@keyframes beast-pop{0%{transform:scale(1)}40%{transform:scale(1.22)}100%{transform:scale(1)}}'),
-    React.createElement('span', { style: { fontSize: 32, lineHeight: 1 } }, face),
+    lottieOk
+      ? React.createElement('div', { ref: containerRef, style: { width: 48, height: 48, pointerEvents: 'none' } })
+      : React.createElement('span', { style: { fontSize: 32, lineHeight: 1 } }, face),
   )
 }
 

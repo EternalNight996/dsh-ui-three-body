@@ -108,7 +108,7 @@ pnpm build      # 生成 lib/client.js
 
 按优先级排列：
 
-1. **萌宠立绘** ⭐ 最关键：`assets/pet.svg` 是占位圆脸小兽，`BeastPet` 用 emoji（💤🐾🔥 三态情绪已实现）。换立绘 / 上 Lottie / 3D 的路线见 [`docs/MASCOT.md`](docs/MASCOT.md)。
+1. **萌宠立绘** ⭐ 只剩这一步：Lottie 已接入（`assets/pet-idle|work|sleep.json` 三个占位动画，待命呼吸/工作脉冲/休眠闭眼），`BeastPet` 按情绪态自动切换、加载失败回退 emoji。把三个 JSON 换成你导出的真实 Lottie 动画即可（96×96，见 [`docs/MASCOT.md`](docs/MASCOT.md)）。
 2. ~~萌宠位置 & 持久化~~ ✅ 已做：默认右侧中间、长按拖拽、`petPos` 持久化到 settings 文件。
 3. **发布元数据**：把 `package.json` 的 `<你的用户名>` 换成真实 GitHub 用户名；然后按 [`PUBLISH.md`](PUBLISH.md) 走 git push + npm publish。
 4. ~~品牌人设~~ ✅ 已做：内核「驯兽师」人设，且语气/自称/称呼**首次使用时弹窗可选可填**（不再写死）。
