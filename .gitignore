@@ -3,3 +3,7 @@ node_modules/
 .DS_Store
 # client 构建产物可选提交；若想纯源码发布则取消下一行注释
 # lib/client.js
+
+# 工具运行生成物
+.dsh-vision-router/
+.reasonix/
