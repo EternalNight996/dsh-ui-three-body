@@ -102,6 +102,32 @@ pnpm build        # 只改 client（src/client）时需要
 # 改 index.js / lib/kernel.js 无需构建，重启即生效
 ```
 
+## 📁 目录结构
+
+```
+dsh-ui-three-body/
+├── index.js              # host 插件：内核注入 + settings 命名空间（无构建，即装即用）
+├── lib/
+│   ├── kernel.js         # 驯兽内核文案（minimal/balanced/full × zh/en × 语气）
+│   └── client.js         # client bundle（构建产物，__ModuleLoader__ 格式）
+├── src/
+│   └── client/index.tsx  # client 源码：悬浮智子 + 皮肤系统 + 幽灵模式 + 设置分区
+├── assets/
+│   └── screen/           # README 演示素材（sophon-demo.gif / sophon-preview.png）
+├── cordis.patch.yml      # bundle 补丁层（host 行，安装自动挂载）
+├── build.mjs             # esbuild 构建脚本（TSX → lib/client.js）
+├── package.json          # bundle/client 清单（dsh.bundle.patch + dsh.client）
+└── README.md
+```
+
+## 🗺 待办 / 路线图
+
+- [ ] **AI 模式下的智子主动行为**：开启 AI 模式后，智子周期性 AI 台词/自主分析（当前 AI 模式只控内核注入）
+- [ ] **自定义皮肤**：导入用户自绘瞳孔 SVG / 配色方案
+- [ ] **多智子**：支持同屏多个悬浮智子（不同皮肤）
+- [ ] **皮肤预设分享**：导出/导入皮肤配置
+- [ ] 幽灵模式「东张西望 / 原地休息」独立开关进一步细化（当前空闲 100% 闪现）
+
 ## 📦 本次改善记录（v0.2）
 
 - **皮肤系统大改**：精选 11 款（去冗余），瞳孔动画（写轮眼勾玉旋转、轮回眼波纹脉冲、智子六边形旋转、白眼放射纹），光晕脉冲 + 冲击波 + 皮肤特效
