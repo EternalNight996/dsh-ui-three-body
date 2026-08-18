@@ -5,10 +5,10 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/<你的用户名>/dsh-beast-master.git"
+    "url": "git+https://github.com/EternalNight996/dsh-beast-master.git"
   },
-  "homepage": "https://github.com/<你的用户名>/dsh-beast-master",
-  "author": "dsh-beast-master contributors",
+  "homepage": "https://github.com/EternalNight996/dsh-beast-master",
+  "author": "EternalNight996",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
