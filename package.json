@@ -1,13 +1,13 @@
 {
-  "name": "dsh-beast-master",
+  "name": "dsh-ui-three-body",
   "version": "0.1.0",
   "description": "驯兽师（驯兽场）：把人类语言翻译给智能体的 DSH 插件——注入「开智」内核（第一性原理 + 需求剖析 + 极简沟通 + 最少 token），左上角悬浮萌宠，设置页可配内核与开关。",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/EternalNight996/dsh-beast-master.git"
+    "url": "git+https://github.com/EternalNight996/dsh-ui-three-body.git"
   },
-  "homepage": "https://github.com/EternalNight996/dsh-beast-master",
+  "homepage": "https://github.com/EternalNight996/dsh-ui-three-body",
   "author": "EternalNight996",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
@@ -47,7 +47,8 @@
   "scripts": {
     "build": "node build.mjs",
     "build:client": "node build.mjs",
-    "prepublishOnly": "node build.mjs"
+    "prepublishOnly": "node build.mjs",
+    "sync": "node scripts/sync-profile.mjs"
   },
   "dependencies": {
     "@deepseek-ai/schemastery": "^3.18.1"

@@ -1,4 +1,4 @@
-# 驯兽师（dsh-beast-master）bundle 补丁层。
+# 驯兽师（dsh-ui-three-body）bundle 补丁层。
 # 安装后由 package.json 的 dsh.bundle.patch 自动生效；后层
 # （profile 自己的 cordis.patch.yml / --patch）可按 id 覆盖或禁用本行。
 #
@@ -7,7 +7,7 @@
 
 - insert:
     - id: beast-tamer
-      name: dsh-beast-master
+      name: dsh-ui-three-body
       config:
         enabled: true
         mode: balanced

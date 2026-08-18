@@ -1,7 +1,7 @@
-// 驯兽师（client 侧）：悬浮萌宠 + 设置页。
+// 智子（client 侧）：悬浮智子 + 设置页。
 //
-// - `shell.overlay`：悬浮萌宠（默认右侧中间、长按拖拽、点击开关、情绪态：休眠/待命/工作中）。
-// - `settings.plugins.tab`：设置面板「插件」里的「驯兽场」标签页，配置内核与开关。
+// - `shell.overlay`：悬浮智子（最右侧中间、长按拖拽、点击开关、情绪态：休眠/待命/工作中）。
+// - `settings.section`：设置面板顶层「三体」分区（与「插件」同层），配置内核与开关。
 //
 // 通过 `settingsScope` 读写 host 侧的 `beast-tamer` 设置命名空间（持久化到 settings 文件）；
 // 通过 `locale` 做中英双语；通过 `sessions` 读取当前会话 running 状态驱动情绪态。
@@ -12,10 +12,18 @@ const NS = 'beast-tamer'
 
 // 程序化动画关键帧（内联注入，零依赖；替代 Lottie）。
 const CSS = `
-@keyframes beast-breathe { 0%,100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+@keyframes beast-breathe { 0%,100% { transform: scale(1); } 50% { transform: scale(1.04); } }
 @keyframes beast-breathe-slow { 0%,100% { transform: scale(1); } 50% { transform: scale(1.02); } }
-@keyframes beast-breathe-fast { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
-@keyframes beast-tail { 0%,100% { transform: rotate(-5deg); } 50% { transform: rotate(8deg); } }
+@keyframes beast-breathe-fast { 0%,100% { transform: scale(1); } 50% { transform: scale(1.09); } }
+@keyframes beast-dance { 0%,100% { transform: translateY(0) rotate(0deg); } 12% { transform: translateY(-5px) rotate(-5deg); } 25% { transform: translateY(0) rotate(5deg); } 37% { transform: translateY(-4px) rotate(-4deg); } 50% { transform: translateY(0) rotate(4deg); } 62% { transform: translateY(-3px) rotate(-3deg); } 75% { transform: translateY(0) rotate(2deg); } 87% { transform: translateY(-2px) rotate(0deg); } }
+@keyframes beast-flicker { 0%,100% { opacity: 0.8; } 50% { opacity: 1; } }
+@keyframes beast-ring { 0% { transform: scale(0.6); opacity: 0.85; } 100% { transform: scale(1.9); opacity: 0; } }
+.beast-menu-item { display:flex; flex-direction:column; align-items:flex-start; gap:2px; width:100%; text-align:left; padding:8px 10px; border-radius:8px; border:none; background:transparent; color:#f3f4f6; cursor:pointer; font-size:13px; transition: background 0.15s ease; }
+.beast-menu-item:hover { background: rgba(245,158,11,0.16); }
+@keyframes beast-glow-pulse { 0%,100% { opacity: 0.35; transform: scale(1); } 50% { opacity: 0.95; transform: scale(1.15); } }
+@keyframes beast-glow-flicker { 0%,100% { opacity: 0.45; } 22% { opacity: 0.95; } 48% { opacity: 0.35; } 74% { opacity: 0.85; } }
+@keyframes beast-menu-in { 0% { opacity: 0; transform: translateY(8px) scale(0.96); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
+.beast-menu { animation: beast-menu-in 0.16s ease-out; }
 `
 
 // settingsScope.bind 内部会 ctx.get('connection') / ctx.get('remote')，
@@ -24,15 +32,29 @@ export const inject = ['settingsScope', 'slots', 'connection', 'remote', 'sessio
 
 // 中英词典（locale 命名空间）。键扁平，zh 兜底 + 缺失回退到键本身。
 const ZH = {
-  nav: '驯兽场',
-  petAwake: '驯兽师：开智中（点击休眠，长按拖拽）',
-  petSleep: '驯兽师：已休眠（点击唤醒）',
-  petWorking: '驯兽师：正在驭兽…',
+  nav: '三体',
+  petAwake: '智子：开智中（点击休眠，长按拖拽）',
+  petSleep: '智子：已休眠（点击唤醒）',
+  petWorking: '智子：正在驭兽…',
   loading: '加载中…',
-  tField: '驯兽场（内核开智）',
-  tFieldHint: '开启后，每次对话注入驯兽师内核，让智能体更懂你。',
-  tPet: '悬浮萌宠',
-  tPetHint: '右侧显示驯兽师萌宠，点击开关内核、长按拖拽。',
+  tField: '三体（内核开智）',
+  tFieldHint: '开启后，每次对话注入智子内核，让智能体更懂你。',
+  tPet: '悬浮智子',
+  tPetHint: '右侧显示智子，点击开关内核、长按拖拽。',
+  tPetSize: '智子尺寸',
+  sizeSmall: '小',
+  sizeMedium: '中（默认）',
+  sizeLarge: '大',
+  tEyeTheme: '眼睛皮肤主题',
+  themeCyan: '青蓝',
+  themeRed: '血红',
+  themeGreen: '毒绿',
+  themePurple: '魅紫',
+  themeAmber: '琥珀',
+  themeGlow: '荧光（脉冲）',
+  themeFlame: '烈焰（闪烁）',
+  themeStorm: '雷霆（闪烁）',
+  themeVoid: '深渊（脉冲）',
   tMode: '内核档位',
   modeMinimal: '极简（最省 token）',
   modeBalanced: '均衡（默认）',
@@ -45,15 +67,15 @@ const ZH = {
   toneGentle: '温和',
   toneWarm: '热忱',
   tSelf: '自称',
-  tSelfHint: '驯兽师如何自称（本尊 / 我 / 在下…）',
+  tSelfHint: '智子如何自称（本尊 / 我 / 在下…）',
   tMaster: '称呼你',
-  tMasterHint: '驯兽师如何称呼你（主上 / 你 / 大人…）',
+  tMasterHint: '智子如何称呼你（主上 / 你 / 大人…）',
   tAnalyze: '需求剖析工具 beast_analyze',
   tAnalyzeHint: '开启后可用工具一键生成规范 markdown 计划（每次多一次模型调用）。',
   tOverride: '内核覆盖（可选）',
   tOverrideHint: '留空使用上方档位的内核；粘贴自定义文本则优先使用。',
-  overridePlaceholder: '在此粘贴自定义驯兽师内核…',
-  obTitle: '驯兽师 · 首次唤醒',
+  overridePlaceholder: '在此粘贴自定义智子内核…',
+  obTitle: '智子 · 首次唤醒',
   obIntro: '本尊苏醒前，先听主上定下规矩。',
   obTone: '语气',
   obSelf: '自称',
@@ -62,21 +84,44 @@ const ZH = {
   obMode: '内核档位',
   obStart: '开始驯兽',
   obSkip: '先用默认',
-  menuTame: '/tame',
-  menuTameDesc: '触发驯兽四式：剖析→定靶→呈策→驭兽',
+  menuTitle: '智子 · 三体',
+  menuTame: '驯兽四式',
+  menuTameDesc: '剖析 → 定靶 → 呈策 → 驭兽',
+  menuAnalyze: '需求剖析',
+  menuAnalyzeDesc: '只出规范计划，不执行',
+  menuDissectUI: '剖析 · 华丽 UI',
+  menuDissectUIDesc: '如何做一个更华丽更有创意的 UI',
+  menuDissectSite: '剖析 · 官网设计',
+  menuDissectSiteDesc: '高转化的营销官网 / 落地页',
+  menuSettings: '三体设置',
+  menuSettingsDesc: '内核档位 · 智子 · 开关',
   menuToggleSleep: '休眠',
   menuToggleWake: '唤醒',
 }
 const EN = {
-  nav: 'Beast Ground',
-  petAwake: 'Beast Tamer: awake (click to sleep, long-press to drag)',
-  petSleep: 'Beast Tamer: asleep (click to wake)',
-  petWorking: 'Beast Tamer: taming…',
+  nav: 'Three-Body',
+  petAwake: 'Sophon: awake (click to sleep, long-press to drag)',
+  petSleep: 'Sophon: asleep (click to wake)',
+  petWorking: 'Sophon: taming…',
   loading: 'Loading…',
-  tField: 'Beast Ground (kernel)',
-  tFieldHint: 'Inject the Beast Tamer kernel into every turn to make the agent understand you.',
-  tPet: 'Floating pet',
-  tPetHint: 'Show the pet; click to toggle the kernel, long-press to drag.',
+  tField: 'Three-Body (kernel)',
+  tFieldHint: 'Inject the Sophon kernel into every turn to make the agent understand you.',
+  tPet: 'Floating Sophon',
+  tPetHint: 'Show the Sophon; click to toggle the kernel, long-press to drag.',
+  tPetSize: 'Sophon size',
+  sizeSmall: 'Small',
+  sizeMedium: 'Medium (default)',
+  sizeLarge: 'Large',
+  tEyeTheme: 'Eye theme',
+  themeCyan: 'Cyan',
+  themeRed: 'Blood red',
+  themeGreen: 'Toxic green',
+  themePurple: 'Arcane purple',
+  themeAmber: 'Amber',
+  themeGlow: 'Glow (pulse)',
+  themeFlame: 'Flame (flicker)',
+  themeStorm: 'Storm (flicker)',
+  themeVoid: 'Void (pulse)',
   tMode: 'Kernel level',
   modeMinimal: 'Minimal (fewest tokens)',
   modeBalanced: 'Balanced (default)',
@@ -89,15 +134,15 @@ const EN = {
   toneGentle: 'Gentle',
   toneWarm: 'Warm',
   tSelf: 'Self-name',
-  tSelfHint: 'How the Tamer refers to itself (this one / I / ...)',
+  tSelfHint: 'How the Sophon refers to itself (this one / I / ...)',
   tMaster: 'Your title',
-  tMasterHint: 'How the Tamer addresses you (Master / you / ...)',
+  tMasterHint: 'How the Sophon addresses you (Master / you / ...)',
   tAnalyze: 'beast_analyze tool',
   tAnalyzeHint: 'Generate a canonical markdown plan in one tool call (costs one extra model call each time).',
   tOverride: 'Kernel override (optional)',
   tOverrideHint: 'Empty uses the level above; pasted text takes priority.',
-  overridePlaceholder: 'Paste your custom Beast Tamer kernel…',
-  obTitle: 'Beast Tamer · First Awakening',
+  overridePlaceholder: 'Paste your custom Sophon kernel…',
+  obTitle: 'Sophon · First Awakening',
   obIntro: 'Before I wake, set the rules, Master.',
   obTone: 'Tone',
   obSelf: 'Self-name',
@@ -106,16 +151,25 @@ const EN = {
   obMode: 'Kernel level',
   obStart: 'Begin taming',
   obSkip: 'Use defaults',
-  menuTame: '/tame',
-  menuTameDesc: 'Run the Four Maneuvers: dissect → target → plan → tame',
+  menuTitle: 'Sophon · Three-Body',
+  menuTame: 'Four Maneuvers',
+  menuTameDesc: 'Dissect → Target → Plan → Tame',
+  menuAnalyze: 'Dissect',
+  menuAnalyzeDesc: 'Produce a canonical plan only',
+  menuDissectUI: 'Dissect · Fancy UI',
+  menuDissectUIDesc: 'How to build a more gorgeous, creative UI',
+  menuDissectSite: 'Dissect · Landing site',
+  menuDissectSiteDesc: 'High-conversion marketing site / landing page',
+  menuSettings: 'Three-Body settings',
+  menuSettingsDesc: 'Kernel level · Sophon · toggles',
   menuToggleSleep: 'Sleep',
   menuToggleWake: 'Wake',
 }
 
 // zustand 式快照 scope → useSyncExternalStore 稳定订阅。
 function useScope(scope) {
-  const subscribe = useCallback((cb) => scope.subscribe(cb), [scope])
-  const getSnapshot = useCallback(() => scope.getSnapshot(), [scope])
+  const subscribe = useCallback((cb) => (scope && typeof scope.subscribe === 'function' ? scope.subscribe(cb) : () => {}), [scope])
+  const getSnapshot = useCallback(() => (scope && typeof scope.getSnapshot === 'function' ? scope.getSnapshot() : null), [scope])
   return useSyncExternalStore(subscribe, getSnapshot)
 }
 
@@ -137,106 +191,162 @@ function useRunning(sessions) {
   return useSyncExternalStore(subscribe, getSnapshot)
 }
 
-// 右侧中间默认位（未持久化时）。x 右偏 76px，y 屏高一半。
-function defaultPos() {
+// 智子尺寸（可配置，默认 120）。
+const DEFAULT_PET_SIZE = 120
+
+// 眼睛皮肤主题：虹膜渐变三色（高光 → 中间 → 边缘）+ 可选特效（effect / glow 光环）。
+const EYE_THEMES = {
+  cyan: { iris: ['#7ff0ff', '#0ea5c4', '#0c4a6e'] },
+  red: { iris: ['#ff9e9e', '#dc2626', '#4a0a0a'] },
+  green: { iris: ['#a6ff9e', '#16a34a', '#0a3d1a'] },
+  purple: { iris: ['#e4aaff', '#9333ea', '#3b0a6e'] },
+  amber: { iris: ['#ffe29e', '#d97706', '#5b2a0a'] },
+  glow: { iris: ['#7ff0ff', '#0ea5c4', '#0c4a6e'], effect: 'pulse', glow: 'rgba(34,211,238,0.6)' },
+  flame: { iris: ['#ffd29e', '#f97316', '#7c2d12'], effect: 'flicker', glow: 'rgba(251,146,60,0.6)' },
+  storm: { iris: ['#c4b5fd', '#7c3aed', '#2e1065'], effect: 'flicker', glow: 'rgba(167,139,250,0.55)' },
+  void: { iris: ['#6b7280', '#1f2937', '#0b0f14'], effect: 'pulse', glow: 'rgba(148,163,184,0.45)' },
+}
+
+// 钳制在 dsh 窗口内（不逃逸边界）。
+function clampPos(x, y, size) {
+  const w = window.innerWidth || 1200
+  const h = window.innerHeight || 800
+  return { x: Math.max(0, Math.min(x, w - size)), y: Math.max(0, Math.min(y, h - size)) }
+}
+
+// 最右侧垂直居中默认位（未持久化时）。
+function defaultPos(size) {
   try {
-    const w = window.innerWidth || 1200
-    const h = window.innerHeight || 800
-    return { x: Math.max(8, w - 76), y: Math.max(8, Math.round(h / 2 - 26)) }
+    return clampPos((window.innerWidth || 1200) - size - 12, Math.round((window.innerHeight || 800) / 2 - size / 2), size)
   } catch {
     return { x: 700, y: 300 }
   }
 }
 
-// 菜单项统一样式。
-const menuItemStyle = {
-  display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2,
-  width: '100%', textAlign: 'left', padding: '8px 10px', borderRadius: 8,
-  border: 'none', background: 'transparent', color: '#f3f4f6', cursor: 'pointer', fontSize: 13,
-}
+// ── 智子本体（程序化 SVG：纯 3D 大眼球 + 眼珠跟随鼠标 + 顺滑眨眼 / 轻微浮动）──
+function BeastMascot({ state, reacting, blinkLevel, eye, size, theme }) {
+  const bob = state === 'sleep' ? 'beast-breathe-slow 4s' : state === 'work' ? 'beast-dance 0.9s' : 'beast-dance 2s'
+  const irisTheme = EYE_THEMES[theme] || EYE_THEMES.cyan
+  const lid = state === 'sleep' ? 1 : blinkLevel // 0=睁眼，1=闭眼
 
-// ── 萌宠本体（程序化 SVG：呼吸 / 眨眼 / 尾巴 / 眼睛跟随鼠标）──────────────
-function BeastMascot({ state, reacting, blink, eye }) {
-  const breathing = state === 'sleep' ? 'beast-breathe-slow 3.6s' : state === 'work' ? 'beast-breathe-fast 0.9s' : 'beast-breathe 2.4s'
-  const tailSpeed = state === 'work' ? '1.1s' : state === 'sleep' ? '4s' : '2.6s'
-  const eyesClosed = blink || state === 'sleep'
-
-  return React.createElement('svg', {
-    viewBox: '0 0 96 96', width: 48, height: 48, 'aria-hidden': true,
-    style: { display: 'block', transform: reacting ? 'scale(1.18)' : 'scale(1)', transition: 'transform 0.18s ease' },
-  },
-    React.createElement('g', { style: { transformOrigin: '68px 66px', animation: `beast-tail ${tailSpeed} ease-in-out infinite` } },
-      React.createElement('path', { d: 'M 68 66 C 83 58 91 70 82 80', fill: 'none', stroke: '#F59E0B', strokeWidth: 7, strokeLinecap: 'round' }),
-    ),
-    React.createElement('g', { style: { transformOrigin: '48px 52px', animation: `${breathing} ease-in-out infinite` } },
-      React.createElement('path', { d: 'M 26 28 L 21 11 L 38 21 Z', fill: '#F59E0B' }),
-      React.createElement('path', { d: 'M 70 28 L 75 11 L 58 21 Z', fill: '#F59E0B' }),
-      React.createElement('circle', { cx: 48, cy: 52, r: 34, fill: '#FBBF24' }),
-      React.createElement('ellipse', { cx: 48, cy: 62, rx: 18, ry: 15, fill: '#FDE68A' }),
-      React.createElement('path', { d: 'M 48 18 C 46 9 51 9 48 18 Z', fill: '#B45309' }),
-      React.createElement('path', { d: 'M 38 56 L 58 56 L 48 68 Z', fill: '#7C2D12' }),
-      eyesClosed
-        ? React.createElement('g', { key: 'closed' },
-            React.createElement('path', { d: 'M 33 46 Q 38 49 43 46', fill: 'none', stroke: '#1F2937', strokeWidth: 2.5, strokeLinecap: 'round' }),
-            React.createElement('path', { d: 'M 53 46 Q 58 49 63 46', fill: 'none', stroke: '#1F2937', strokeWidth: 2.5, strokeLinecap: 'round' }),
-          )
-        : React.createElement('g', { key: 'open' },
-            React.createElement('circle', { cx: 38, cy: 46, r: 7, fill: '#ffffff' }),
-            React.createElement('circle', { cx: 58, cy: 46, r: 7, fill: '#ffffff' }),
-            React.createElement('circle', { cx: 38 + eye.x, cy: 46 + eye.y, r: 3.5, fill: '#1F2937' }),
-            React.createElement('circle', { cx: 58 + eye.x, cy: 46 + eye.y, r: 3.5, fill: '#1F2937' }),
-          ),
-      React.createElement('path', { d: 'M 42 60 Q 48 64 54 60', fill: 'none', stroke: '#7C2D12', strokeWidth: 2, strokeLinecap: 'round' }),
-    ),
+  return (
+    <svg viewBox="0 0 96 96" width={size} height={size} aria-hidden="true"
+      style={{ display: 'block', transform: reacting ? 'scale(1.1)' : 'scale(1)', transition: 'transform 0.18s ease', filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.4))' }}>
+      <defs>
+        <clipPath id="beast-eye-clip">
+          <circle cx="48" cy="48" r="44" />
+        </clipPath>
+        <radialGradient id="beast-sclera" cx="0.38" cy="0.32" r="1">
+          <stop offset="0" stopColor="#ffffff" />
+          <stop offset="0.6" stopColor="#eef2f6" />
+          <stop offset="0.85" stopColor="#b6c2cf" />
+          <stop offset="1" stopColor="#7d8ca0" />
+        </radialGradient>
+        <radialGradient id="beast-iris" cx="0.4" cy="0.35" r="0.85">
+          <stop offset="0" stopColor={irisTheme.iris[0]} />
+          <stop offset="0.55" stopColor={irisTheme.iris[1]} />
+          <stop offset="1" stopColor={irisTheme.iris[2]} />
+        </radialGradient>
+        <radialGradient id="beast-lid" cx="0.5" cy="0.12" r="1">
+          <stop offset="0" stopColor="#3a2b5c" />
+          <stop offset="0.6" stopColor="#241a3a" />
+          <stop offset="1" stopColor="#140d20" />
+        </radialGradient>
+      </defs>
+      {/* 主体（轻微浮动） */}
+      <g style={{ transformOrigin: '48px 48px', animation: `${bob} ease-in-out infinite` }}>
+        {/* 全部裁剪进眼球圆内 */}
+        <g clipPath="url(#beast-eye-clip)">
+          {/* 眼白（3D 球体） */}
+          <circle cx="48" cy="48" r="44" fill="url(#beast-sclera)" />
+          {/* 血丝（恐怖） */}
+          <path d="M 10 30 Q 24 22 34 26" stroke="#e05252" strokeWidth="1.1" fill="none" opacity="0.45" />
+          <path d="M 16 62 Q 30 70 40 66" stroke="#e05252" strokeWidth="1.1" fill="none" opacity="0.45" />
+          <path d="M 86 34 Q 72 26 62 30" stroke="#e05252" strokeWidth="1.1" fill="none" opacity="0.45" />
+          <path d="M 80 58 Q 68 66 58 62" stroke="#e05252" strokeWidth="1.1" fill="none" opacity="0.4" />
+          {/* 虹膜 + 瞳孔：transform 平移（GPU 加速，即时跟手） */}
+          <g style={{ transform: `translate(${eye.x * 0.5}px, ${eye.y * 0.5}px)` }}>
+            <circle cx="48" cy="48" r="26" fill="url(#beast-iris)" />
+          </g>
+          <g style={{ transform: `translate(${eye.x}px, ${eye.y}px)` }}>
+            <circle cx="48" cy="48" r="13" fill="#05060a" />
+          </g>
+          {irisTheme.effect && (
+            <circle cx="48" cy="48" r="31" fill="none" stroke={irisTheme.glow} strokeWidth="3"
+              style={{ animation: `beast-glow-${irisTheme.effect} 2s ease-in-out infinite`, pointerEvents: 'none' }} />
+          )}
+          {/* 高光（固定，3D 反光） */}
+          <circle cx="33" cy="32" r="7" fill="#ffffff" opacity="0.95" />
+          <circle cx="62" cy="63" r="3.5" fill="#ffffff" opacity="0.5" />
+          {/* 眼皮：随 lid 平滑下滑（弧形睫毛线 + 褶皱） */}
+          <g style={{ transform: `translateY(${-96 + lid * 96}px)`, transition: 'transform 0.12s ease-in-out' }}>
+            <rect x="0" y="0" width="96" height="96" fill="url(#beast-lid)" />
+            <path d="M 2 94 Q 48 84 94 94" stroke="#0d0818" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+            <path d="M 6 44 Q 48 52 90 44" stroke="#120c1e" strokeWidth="1.8" fill="none" opacity="0.55" />
+          </g>
+        </g>
+      </g>
+    </svg>
   )
 }
 
-// ── 悬浮萌宠 ────────────────────────────────────────────────────────────────
+// ── 悬浮智子 ────────────────────────────────────────────────────────────────
 function BeastPet({ scope, sessions, t, inputBridge }) {
   const snap = useScope(scope)
   const value = snap && snap.value && typeof snap.value === 'object' ? snap.value : null
   const running = useRunning(sessions)
+  const size = value && typeof value.petSize === 'number' ? Math.max(48, Math.min(160, value.petSize)) : DEFAULT_PET_SIZE
+  const theme = value && value.eyeTheme ? value.eyeTheme : 'cyan'
   const [pos, setPos] = useState(() => {
     const p = value && value.petPos
-    return p && typeof p.x === 'number' && typeof p.y === 'number' ? { x: p.x, y: p.y } : defaultPos()
+    return p && typeof p.x === 'number' && typeof p.y === 'number' ? clampPos(p.x, p.y, size) : defaultPos(size)
   })
   const dragRef = useRef(null)
   const [reacting, setReacting] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
-  const [blink, setBlink] = useState(false)
+  const [blinkLevel, setBlinkLevel] = useState(0)
   const [eye, setEye] = useState({ x: 0, y: 0 })
+  const [hovering, setHovering] = useState(false)
+  const [burst, setBurst] = useState(0)
 
   const enabled = value ? value.enabled !== false : true
   const petEnabled = value ? value.petEnabled !== false : true
-  if (!petEnabled) return null
-
   const state = !enabled ? 'sleep' : running ? 'work' : 'idle'
   const title = state === 'sleep' ? t('petSleep') : state === 'work' ? t('petWorking') : t('petAwake')
 
-  // 随机眨眼（活物感）。
+  // 随机眨眼（活物感；顺滑快速）。
   useEffect(() => {
     let closed
     const schedule = () => {
       closed = setTimeout(() => {
-        setBlink(true)
-        setTimeout(() => { setBlink(false); schedule() }, 130)
+        setBlinkLevel(1)
+        setTimeout(() => { setBlinkLevel(0); schedule() }, 200)
       }, 2000 + Math.random() * 4000)
     }
     schedule()
     return () => clearTimeout(closed)
   }, [])
 
-  // 眼睛跟随鼠标（休眠时不跟随）。
+  // 眼睛跟随鼠标（休眠时不跟随；rAF 节流 + 即时跟手，幅度大、不卡顿）。
   useEffect(() => {
     if (state === 'sleep') return undefined
+    let raf = 0
+    let pending = null
     const onMove = (e) => {
       const nx = (e.clientX / (window.innerWidth || 1)) * 2 - 1
       const ny = (e.clientY / (window.innerHeight || 1)) * 2 - 1
-      setEye({ x: nx * 3, y: ny * 3 })
+      pending = { x: nx * 14, y: ny * 14 }
+      if (raf) return
+      raf = requestAnimationFrame(() => {
+        raf = 0
+        if (pending) { setEye(pending); pending = null }
+      })
     }
     window.addEventListener('mousemove', onMove)
-    return () => window.removeEventListener('mousemove', onMove)
+    return () => { window.removeEventListener('mousemove', onMove); if (raf) cancelAnimationFrame(raf) }
   }, [state])
+
+  if (!petEnabled) return null
 
   // 长按拖拽：按住 280ms 后进入拖拽态；快速点按 = 弹出菜单。
   const onPointerDown = (e) => {
@@ -253,7 +363,7 @@ function BeastPet({ scope, sessions, t, inputBridge }) {
     const dx = e.clientX - d.startX
     const dy = e.clientY - d.startY
     if (!d.moved && Math.abs(dx) + Math.abs(dy) > 3) d.moved = true
-    setPos({ x: d.baseX + dx, y: d.baseY + dy })
+    setPos(clampPos(d.baseX + dx, d.baseY + dy, size))
   }
   const onPointerUp = () => {
     const d = dragRef.current
@@ -266,6 +376,7 @@ function BeastPet({ scope, sessions, t, inputBridge }) {
     } else {
       setMenuOpen((v) => !v)
       setReacting(true)
+      setBurst((b) => b + 1)
       setTimeout(() => setReacting(false), 400)
     }
   }
@@ -273,6 +384,30 @@ function BeastPet({ scope, sessions, t, inputBridge }) {
   const applyCommand = (text) => {
     if (inputBridge && typeof inputBridge.setDraft === 'function') inputBridge.setDraft(text)
     setMenuOpen(false)
+  }
+
+  // 打开设置面板并直接切到「三体」分区（而非默认的通用）。
+  const openSettings = () => {
+    setMenuOpen(false)
+    try {
+      const trigger = document.querySelector('button[aria-haspopup="dialog"]')
+      if (trigger) trigger.click()
+      let tries = 0
+      const timer = setInterval(() => {
+        tries++
+        const buttons = Array.from(document.querySelectorAll('nav button'))
+        const target = buttons.find((b) => {
+          const txt = (b.textContent || '')
+          return txt.includes('三体') || txt.includes('Three-Body')
+        })
+        if (target) {
+          target.click()
+          clearInterval(timer)
+        } else if (tries > 8) {
+          clearInterval(timer)
+        }
+      }, 100)
+    } catch {}
   }
 
   const petDiv = React.createElement(
@@ -283,34 +418,71 @@ function BeastPet({ scope, sessions, t, inputBridge }) {
       title,
       'aria-label': title,
       onPointerDown, onPointerMove, onPointerUp,
+      onMouseEnter: () => setHovering(true),
+      onMouseLeave: () => setHovering(false),
       style: {
         position: 'fixed', left: pos.x, top: pos.y, zIndex: 100000,
-        width: 52, height: 52, cursor: 'grab', userSelect: 'none', touchAction: 'none',
+        width: size, height: size, cursor: 'grab', userSelect: 'none', touchAction: 'none',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        borderRadius: '50%',
-        background: state === 'work' ? 'rgba(251,146,60,0.14)' : 'rgba(34,34,34,0.06)',
+        borderRadius: 20,
+        background: hovering
+          ? 'rgba(245,158,11,0.20)'
+          : state === 'work' ? 'rgba(251,146,60,0.14)' : 'rgba(34,34,34,0.05)',
         filter: state === 'sleep' ? 'grayscale(1) opacity(0.55)' : 'none',
-        boxShadow: state === 'work' ? '0 0 0 4px rgba(251,146,60,0.18)' : 'none',
-        transition: 'filter 0.2s ease, background 0.2s ease, box-shadow 0.2s ease',
+        boxShadow: hovering || state === 'work' ? '0 0 0 2px rgba(245,158,11,0.35)' : 'none',
+        transform: hovering ? 'scale(1.04)' : 'scale(1)',
+        transition: 'filter 0.2s ease, background 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease',
       },
     },
-    React.createElement(BeastMascot, { state, reacting, blink, eye }),
+    burst > 0 ? React.createElement('span', {
+      key: 'burst-' + burst,
+      style: {
+        position: 'absolute', inset: -4, borderRadius: 18,
+        border: '2px solid rgba(245,158,11,0.55)',
+        animation: 'beast-ring 0.45s ease-out forwards', pointerEvents: 'none',
+      },
+    }) : null,
+    React.createElement(BeastMascot, { state, reacting, blinkLevel, eye, size, theme }),
   )
 
   const menu = menuOpen ? React.createElement(
     'div',
-    { key: 'menu', onClick: (e) => e.stopPropagation(), style: {
-      position: 'fixed', left: Math.max(8, pos.x - 240), top: Math.min((window.innerHeight || 800) - 140, pos.y),
-      zIndex: 100001, minWidth: 220, borderRadius: 12, overflow: 'hidden',
-      background: 'rgba(17,24,39,0.97)', color: '#f3f4f6', boxShadow: '0 16px 48px rgba(0,0,0,0.4)', padding: 6,
+    { key: 'menu', className: 'beast-menu', onClick: (e) => e.stopPropagation(), style: {
+      position: 'fixed', left: Math.max(8, pos.x - 280), top: Math.min((window.innerHeight || 800) - 300, pos.y),
+      zIndex: 100001, minWidth: 260, borderRadius: 14, overflow: 'hidden',
+      background: 'linear-gradient(160deg, rgba(30,41,59,0.98), rgba(15,23,42,0.98))',
+      color: '#f3f4f6', boxShadow: '0 24px 64px rgba(0,0,0,0.55), 0 0 0 1px rgba(245,158,11,0.28)', padding: 8,
     } },
-    React.createElement('button', { onClick: () => applyCommand('/tame '), style: menuItemStyle },
-      React.createElement('span', { style: { fontWeight: 700, fontFamily: 'monospace' } }, t('menuTame')),
+    React.createElement('div', { style: { display: 'flex', alignItems: 'center', gap: 9, padding: '8px 10px 12px', borderBottom: '1px solid rgba(255,255,255,0.08)' } },
+      React.createElement('span', { style: { fontSize: 18, lineHeight: 1 } }, '👁️'),
+      React.createElement('div', { style: { display: 'flex', flexDirection: 'column', gap: 1 } },
+        React.createElement('span', { style: { fontWeight: 700, fontSize: 13, letterSpacing: 0.5 } }, t('menuTitle')),
+        React.createElement('span', { style: { fontSize: 11, opacity: 0.65 } }, state === 'sleep' ? t('petSleep') : t('petAwake')),
+      ),
+    ),
+    React.createElement('button', { className: 'beast-menu-item', onClick: () => applyCommand('/tame ') },
+      React.createElement('span', { style: { fontWeight: 700 } }, '⚔️ ' + t('menuTame')),
       React.createElement('span', { style: { fontSize: 11, opacity: 0.7 } }, t('menuTameDesc')),
     ),
+    React.createElement('button', { className: 'beast-menu-item', onClick: () => applyCommand('帮我剖析需求，只出规范 markdown 计划、不执行：') },
+      React.createElement('span', { style: { fontWeight: 600 } }, '🔍 ' + t('menuAnalyze')),
+      React.createElement('span', { style: { fontSize: 11, opacity: 0.7 } }, t('menuAnalyzeDesc')),
+    ),
+    React.createElement('button', { className: 'beast-menu-item', onClick: () => applyCommand('帮我剖析：如何做一个更华丽、更有创意的 UI，只出规范 markdown 计划、不执行：') },
+      React.createElement('span', { style: { fontWeight: 600 } }, '🎨 ' + t('menuDissectUI')),
+      React.createElement('span', { style: { fontSize: 11, opacity: 0.7 } }, t('menuDissectUIDesc')),
+    ),
+    React.createElement('button', { className: 'beast-menu-item', onClick: () => applyCommand('帮我剖析：如何做一个高转化的营销官网，只出规范 markdown 计划、不执行：') },
+      React.createElement('span', { style: { fontWeight: 600 } }, '🖥️ ' + t('menuDissectSite')),
+      React.createElement('span', { style: { fontSize: 11, opacity: 0.7 } }, t('menuDissectSiteDesc')),
+    ),
+    React.createElement('button', { className: 'beast-menu-item', onClick: openSettings },
+      React.createElement('span', { style: { fontWeight: 600 } }, '⚙️ ' + t('menuSettings')),
+      React.createElement('span', { style: { fontSize: 11, opacity: 0.7 } }, t('menuSettingsDesc')),
+    ),
     React.createElement('div', { style: { height: 1, background: 'rgba(255,255,255,0.1)', margin: '4px 8px' } }),
-    React.createElement('button', { onClick: () => { scope.set('enabled', !enabled); setMenuOpen(false) }, style: menuItemStyle },
-      React.createElement('span', null, enabled ? t('menuToggleSleep') : t('menuToggleWake')),
+    React.createElement('button', { className: 'beast-menu-item', onClick: () => { scope.set('enabled', !enabled); setMenuOpen(false) } },
+      React.createElement('span', null, (enabled ? '💤 ' : '👁️ ') + (enabled ? t('menuToggleSleep') : t('menuToggleWake'))),
     ),
   ) : null
 
@@ -387,8 +559,8 @@ function TextInput({ value, onChange, placeholder, hint }) {
 }
 
 // ── 设置标签页 ──────────────────────────────────────────────────────────────
-function BeastSettings({ scope, t }) {
-  const snap = useScope(scope)
+function BeastSettings({ useBeastSettings, t }) {
+  const snap = useBeastSettings((s) => s)
   const value = snap && snap.value && typeof snap.value === 'object' ? snap.value : null
 
   if (!value) return React.createElement('div', { style: { padding: 16, opacity: 0.6 } }, t('loading'))
@@ -398,6 +570,14 @@ function BeastSettings({ scope, t }) {
     { style: { display: 'flex', flexDirection: 'column', gap: 20, padding: 16, maxWidth: 560 } },
     Row({ label: t('tField'), hint: t('tFieldHint'), checked: value.enabled !== false, onChange: (v) => scope.set('enabled', v) }),
     Row({ label: t('tPet'), hint: t('tPetHint'), checked: value.petEnabled !== false, onChange: (v) => scope.set('petEnabled', v) }),
+    Field({ label: t('tPetSize') }, Seg({
+      value: value.petSize || 120, onChange: (v) => scope.set('petSize', v),
+      options: [[96, t('sizeSmall')], [120, t('sizeMedium')], [160, t('sizeLarge')]],
+    })),
+    Field({ label: t('tEyeTheme') }, Seg({
+      value: value.eyeTheme || 'cyan', onChange: (v) => scope.set('eyeTheme', v),
+      options: [['cyan', t('themeCyan')], ['red', t('themeRed')], ['green', t('themeGreen')], ['purple', t('themePurple')], ['amber', t('themeAmber')], ['glow', t('themeGlow')], ['flame', t('themeFlame')], ['storm', t('themeStorm')], ['void', t('themeVoid')]],
+    })),
     Field({ label: t('tMode') }, Seg({
       value: value.mode || 'balanced', onChange: (v) => scope.set('mode', v),
       options: [['minimal', t('modeMinimal')], ['balanced', t('modeBalanced')], ['full', t('modeFull')]],
@@ -525,7 +705,7 @@ export function apply(ctx) {
     'beast-tamer: first-run onboarding',
   )
 
-  // 悬浮萌宠（root 层 frame 级浮层，高于各列、不遮挡按钮）。
+  // 悬浮智子（root 层 frame 级浮层，高于各列、不遮挡按钮）。
   ctx.effect(
     () => ctx.slots.inject('shell.overlay', function* () {
       yield ctx.slots.register(
@@ -536,15 +716,13 @@ export function apply(ctx) {
     'beast-tamer: floating pet',
   )
 
-  // 设置面板「插件」分区里的「驯兽场」标签页。
+  // 设置面板顶层「三体」分区（与「插件」同层；locale 提供 t，hooks 提供 useBeastSettings）。
   ctx.effect(
-    () => ctx.slots.inject('settings.plugins.tab', function* () {
-      yield ctx.slots.register(
-        { name: 'settings.plugins.tab', id: 'beast-tamer', order: 30, label: () => t('nav'), inject: () => settingsInject },
-        BeastSettings,
-      )
-    }),
-    'beast-tamer: settings tab',
+    () => ctx.slots.inject('settings.section', () => ctx.slots.register(
+      { name: 'settings.section', id: 'beast-tamer', order: 20, label: () => t('nav'), locale: NS, inject: () => ({ hooks: { beastSettings: scope } }) },
+      BeastSettings,
+    )),
+    'beast-tamer: settings section',
   )
 
   // 输入桥接（session 作用域空组件）：把 inputActions.setDraft 引给萌宠菜单。

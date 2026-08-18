@@ -7,7 +7,7 @@
 import { build } from 'esbuild'
 import { readFile, writeFile, rm } from 'node:fs/promises'
 
-const PACKAGE_ID = 'dsh-beast-master'
+const PACKAGE_ID = 'dsh-ui-three-body'
 
 // 共享运行时一律 external：由 DSH 的 __ModuleLoader__ 在运行时 require 注入，
 // 绝不能打进 bundle（否则会复制 React/Cordis 运行时身份）。

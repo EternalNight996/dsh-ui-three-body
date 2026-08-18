@@ -1,4 +1,4 @@
-# 驯兽师（驯兽场）· dsh-beast-master
+# 驯兽师（驯兽场）· dsh-ui-three-body
 
 > 把「人话」翻译给智能体的 DSH 插件。开启后，每一次对话都注入「驯兽师内核」——第一性原理 + 需求剖析 + 极简沟通 + 最少 token，让智能体真正「开智」、更懂人类；左上角悬浮一只萌宠做开关，设置面板里可配置内核档位。
 
@@ -12,11 +12,11 @@
 
 ```bash
 # 从 GitHub 安装（发布后）
-dsh plugin add github:<你的用户名>/dsh-beast-master
+dsh plugin add github:<你的用户名>/dsh-ui-three-body
 
 # 本地联调
 cd <profile 目录>
-pnpm add /absolute/path/to/dsh-beast-master
+pnpm add /absolute/path/to/dsh-ui-three-body
 ```
 
 安装后：`dsh 设置 → 插件 → 驯兽场` 即可配置；左上角出现萌宠即已开启。
@@ -43,7 +43,7 @@ pnpm add /absolute/path/to/dsh-beast-master
 ## 架构
 
 ```
-dsh-beast-master/
+dsh-ui-three-body/
 ├── index.js            # host 插件：内核注入 + settings 命名空间（无构建，即装即用）
 ├── lib/
 │   └── kernel.js       # 驯兽师内核文案（三档）

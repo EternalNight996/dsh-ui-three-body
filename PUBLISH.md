@@ -21,7 +21,7 @@ DSH 插件市场（`dshmarket`）不是人工审核制，而是**自动同步**�
 
 ```jsonc
 {
-  "name": "dsh-beast-master",              // npm 包名，全小写、无 @scope 时需唯一
+  "name": "dsh-ui-three-body",              // npm 包名，全小写、无 @scope 时需唯一
   "main": "index.js",                      // host 半边入口
   "exports": {
     ".": "./index.js",
@@ -31,8 +31,8 @@ DSH 插件市场（`dshmarket`）不是人工审核制，而是**自动同步**�
   },
   "files": ["index.js", "lib", "assets", "cordis.patch.yml", "README.md", "LICENSE"], // npm tarball 白名单
   "keywords": ["dsh-plugin", "deepseek-harness", "dsh", "..."],  // ⭐ 关键：dsh-plugin 让市场收录
-  "repository": { "url": "git+https://github.com/<你的用户名>/dsh-beast-master.git" },
-  "homepage": "https://github.com/<你的用户名>/dsh-beast-master",
+  "repository": { "url": "git+https://github.com/<你的用户名>/dsh-ui-three-body.git" },
+  "homepage": "https://github.com/<你的用户名>/dsh-ui-three-body",
   "scripts": { "prepublishOnly": "node build.mjs" },   // 发布前自动重构建 client
   "dsh": {
     "client": { "platform": "web", "inject": [...] },   // client 自动挂载元数据
@@ -59,8 +59,8 @@ pnpm i
 pnpm build                 # 生成 lib/client.js
 
 # 2. 装进当前 profile 试跑
-dsh plugin --profile web add F:/absolute/path/to/dsh-beast-master
-# 或：npx @deepseek-ai/dsh plugin --profile web add dsh-beast-master（已发布后）
+dsh plugin --profile web add F:/absolute/path/to/dsh-ui-three-body
+# 或：npx @deepseek-ai/dsh plugin --profile web add dsh-ui-three-body（已发布后）
 
 # 3. 重启 dsh web 看效果：设置 → 插件 → 驯兽场；左上角萌宠
 ```
@@ -72,13 +72,13 @@ dsh plugin --profile web add F:/absolute/path/to/dsh-beast-master
 ## 3. 上传 GitHub
 
 ```bash
-cd dsh-beast-master
+cd dsh-ui-three-body
 git init
 git add .
 git commit -m "feat: 驯兽师（驯兽场）DSH 插件 v0.1.0"
 
-# 在 GitHub 网页上先建空仓库 dsh-beast-master，然后：
-git remote add origin https://github.com/<你的用户名>/dsh-beast-master.git
+# 在 GitHub 网页上先建空仓库 dsh-ui-three-body，然后：
+git remote add origin https://github.com/<你的用户名>/dsh-ui-three-body.git
 git branch -M main
 git push -u origin main
 ```
@@ -98,8 +98,8 @@ npm publish        # 触发 prepublishOnly 自动 build，然后发布
 
 发布成功后：
 
-- npm 地址：`https://www.npmjs.com/package/dsh-beast-master`
-- 用户可一条命令安装：`dsh plugin --profile web add dsh-beast-master`
+- npm 地址：`https://www.npmjs.com/package/dsh-ui-three-body`
+- 用户可一条命令安装：`dsh plugin --profile web add dsh-ui-three-body`
 
 常见坑：
 
