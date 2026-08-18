@@ -56,4 +56,4 @@ const wrapped = [
 ].join('\n')
 
 await writeFile('lib/client.js', wrapped)
-console.log(`[beast-master] client bundle written to lib/client.js (${wrapped.length} chars)`)
+console.log(`[three-body] client bundle written to lib/client.js (${wrapped.length} chars)`)

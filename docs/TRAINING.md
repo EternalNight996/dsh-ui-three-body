@@ -14,7 +14,7 @@
 
 - 新增 `beast_remember` host 工具：agent 在「呈策→主上定夺」后调用，记录 `{ task, verdict(准/驳), note }`。
 - 内核第三式加一句：「定夺后调用 beast_remember 记下主上的好恶」。
-- 存储：`~/.dsh/beast-master/prefs.json`（纯 JSON 文件，参考 pixe 的 `custom-roles.json`，无需引入存储服务）。
+- 存储：`~/.dsh/dsh-ui-three-body/prefs.json`（纯 JSON 文件，参考 pixe 的 `custom-roles.json`，无需引入存储服务）。
 
 ### Phase 2 · 沉淀偏好（v0.3）
 
@@ -48,7 +48,7 @@
 | 需求 | 原语 |
 | --- | --- |
 | 捕获 OK/NG | `beast_remember` 工具 + `session` 事件（`tool/result`、`user/message`） |
-| 持久化 | 纯 JSON 文件（`~/.dsh/beast-master/prefs.json`）或 `storage` 服务 |
+| 持久化 | 纯 JSON 文件（`~/.dsh/dsh-ui-three-body/prefs.json`）或 `storage` 服务 |
 | 注入偏好 | `systemPrompt.context()`（动态，可排序、可 per-session） |
 | 按需召回 | `systemPrompt.variable()` 或 context 内做轻量匹配 |
 

@@ -20,7 +20,7 @@ const home = os.homedir()
 const profile = join(home, '.dsh', 'profiles', 'web', 'node_modules', 'dsh-ui-three-body')
 
 if (!existsSync(profile)) {
-  console.error(`[beast-master] 未找到 profile 副本: ${profile}`)
+  console.error(`[three-body] 未找到 profile 副本: ${profile}`)
   console.error('上次安装后 dsh profile 可能变动，先执行: cd "…/dsh-ui-three-body" && pnpm add "file:$(pwd)"')
   process.exit(1)
 }
@@ -33,21 +33,21 @@ for (const f of files) {
   const src = join(root, f)
   if (!existsSync(src)) continue
   cpSync(src, join(profile, f), { force: true })
-  console.log(`[beast-master] synced ${f}`)
+  console.log(`[three-body] synced ${f}`)
 }
 for (const d of dirs) {
   const srcDir = join(root, d)
   if (!existsSync(srcDir)) continue
   cpSync(srcDir, join(profile, d), { recursive: true, force: true })
-  console.log(`[beast-master] synced ${d}/`)
+  console.log(`[three-body] synced ${d}/`)
 }
 
 // 校验：确认副本确实是刚同步的（读版本号 /tame 是否已转义）。
 const srcKernel = readFileSync(join(root, 'lib', 'kernel.js'), 'utf8')
 const dstKernel = readFileSync(join(profile, 'lib', 'kernel.js'), 'utf8')
 if (srcKernel === dstKernel) {
-  console.log('[beast-master] 校验通过：profile 副本与源码一致 ✅')
+  console.log('[three-body] 校验通过：profile 副本与源码一致 ✅')
 } else {
-  console.error('[beast-master] ⚠️ 校验失败：副本与源码不一致（拷贝可能被占用）')
+  console.error('[three-body] ⚠️ 校验失败：副本与源码不一致（拷贝可能被占用）')
   process.exit(1)
 }

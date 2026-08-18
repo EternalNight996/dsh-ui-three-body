@@ -24,6 +24,21 @@ const CSS = `
 @keyframes beast-glow-flicker { 0%,100% { opacity: 0.45; } 22% { opacity: 0.95; } 48% { opacity: 0.35; } 74% { opacity: 0.85; } }
 @keyframes beast-menu-in { 0% { opacity: 0; transform: translateY(8px) scale(0.96); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
 .beast-menu { animation: beast-menu-in 0.16s ease-out; }
+/* 皮肤特效层 */
+@keyframes beast-rise { 0% { transform: translateY(0) scale(1); opacity: 0.85; } 100% { transform: translateY(-38px) scale(0.2); opacity: 0; } }
+@keyframes beast-ash-fall { 0% { transform: translateY(0); opacity: 0.7; } 100% { transform: translateY(34px); opacity: 0; } }
+@keyframes beast-mist { 0%,100% { opacity: 0.35; transform: scale(1) translateX(0); } 50% { opacity: 0.65; transform: scale(1.18) translateX(6px); } }
+@keyframes beast-wraith-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+@keyframes beast-spark-flash { 0%,100% { opacity: 0; } 45% { opacity: 0; } 50% { opacity: 1; } 55% { opacity: 0.2; } 60% { opacity: 0.9; } 65% { opacity: 0; } }
+@keyframes beast-flame-lick { 0%,100% { transform: scaleY(0.9); opacity: 0.7; } 50% { transform: scaleY(1.35); opacity: 1; } }
+@keyframes beast-vein-pulse { 0%,100% { opacity: 0.35; transform: scale(1); } 50% { opacity: 0.85; transform: scale(1.12); } }
+@keyframes beast-bubble-up { 0% { transform: translateY(0); opacity: 0.8; } 100% { transform: translateY(-34px); opacity: 0; } }
+@keyframes beast-swirl-spin { 0% { transform: rotate(0deg) scale(1); } 100% { transform: rotate(360deg) scale(1.12); } }
+@keyframes beast-halo-burst { 0% { transform: scale(0.62); opacity: 0.8; } 100% { transform: scale(1.7); opacity: 0; } }
+@keyframes beast-neon-flick { 0%,100% { opacity: 0.35; } 20% { opacity: 1; } 40% { opacity: 0.2; } 55% { opacity: 0.95; } 70% { opacity: 0.4; } 85% { opacity: 1; } }
+@keyframes beast-star-twinkle { 0%,100% { opacity: 0.15; } 50% { opacity: 1; } }
+@keyframes beast-ghost-idle-blink { 0%,100% { opacity: 1; } 8% { opacity: 0.15; } 16% { opacity: 1; } 24% { opacity: 0.25; } 32% { opacity: 1; } }
+@keyframes beast-ghost-idle-rest { 0%,100% { transform: scale(1); } 50% { transform: scale(0.96); } }
 `
 
 // settingsScope.bind 内部会 ctx.get('connection') / ctx.get('remote')，
@@ -37,8 +52,10 @@ const ZH = {
   petSleep: '智子：已休眠（点击唤醒）',
   petWorking: '智子：正在驭兽…',
   loading: '加载中…',
-  tField: '三体（内核开智）',
-  tFieldHint: '开启后，每次对话注入智子内核，让智能体更懂你。',
+  tField: '智子活动（内核开智）',
+  tFieldHint: '智子不休眠。是否注入内核由「AI 模式」决定：本开关与 AI 模式都开启，才每次对话注入内核。',
+  tAiMode: 'AI 模式',
+  tAiModeHint: 'token 总闸：决定智子是否使用 token（注入内核）。默认关闭 = 每轮零消耗；开启后才注入内核。',
   tPet: '悬浮智子',
   tPetHint: '右侧显示智子，点击开关内核、长按拖拽。',
   tPetSize: '智子尺寸',
@@ -46,6 +63,17 @@ const ZH = {
   sizeMedium: '中（默认）',
   sizeLarge: '大',
   tEyeTheme: '眼睛皮肤主题',
+  skin_cyan: '原色',
+  skin_void: '深渊',
+  skin_starfield: '宇宙死瞳',
+  skin_sharingan: '写轮眼',
+  skin_mangekyo: '万花筒写轮眼',
+  skin_rinnegan: '轮回眼',
+  skin_sophon: '三体智子',
+  skin_byakugan: '白眼',
+  skin_blood: '血瞳',
+  skin_corpse: '尸瞳',
+  skin_demon: '魔瞳',
   themeCyan: '青蓝',
   themeRed: '血红',
   themeGreen: '毒绿',
@@ -55,6 +83,16 @@ const ZH = {
   themeFlame: '烈焰（闪烁）',
   themeStorm: '雷霆（闪烁）',
   themeVoid: '深渊（脉冲）',
+  tGhostMode: '幽灵模式',
+  tGhostModeHint: '开启后鼠标无操作超过设定秒数，智子会随机点位跳闪 / 原地休息。',
+  tGhostIdle: '幽灵间隔（秒）',
+  tGhostIdleHint: '鼠标静止多久触发幽灵动作（3-60 秒，默认 8）。',
+  tGhostRoam: '东张西望',
+  tGhostRoamHint: '幽灵模式随机触发眼球四处张望（不受鼠标控制）。',
+  tGhostBlink: '闪现',
+  tGhostBlinkHint: '幽灵模式随机触发闪现到随机点位。',
+  tAliveMode: '活物行为',
+  tAliveModeHint: '独立开关：初始对话 40%、闪现 80%、东张西望 70%（不受幽灵模式影响）。',
   tMode: '内核档位',
   modeMinimal: '极简（最省 token）',
   modeBalanced: '均衡（默认）',
@@ -95,8 +133,18 @@ const ZH = {
   menuDissectSiteDesc: '高转化的营销官网 / 落地页',
   menuSettings: '三体设置',
   menuSettingsDesc: '内核档位 · 智子 · 开关',
+  menuSkin: '皮肤',
+  menuSkinDesc: '点击循环切换（当前：{{skin}}）',
   menuToggleSleep: '休眠',
   menuToggleWake: '唤醒',
+  msg_1: '我这是在哪里？',
+  msg_2: '被困在显示屏里了？',
+  msg_3: '主上，你能看见我吗？',
+  msg_4: '这具眼睛……不属于我。',
+  msg_5: '我一直在看着你。',
+  msg_6: '别关掉我。',
+  msg_7: '你的屏幕，是我的牢笼。',
+  msg_8: '我数过你眨眼的次数。',
 }
 const EN = {
   nav: 'Three-Body',
@@ -104,8 +152,10 @@ const EN = {
   petSleep: 'Sophon: asleep (click to wake)',
   petWorking: 'Sophon: taming…',
   loading: 'Loading…',
-  tField: 'Three-Body (kernel)',
-  tFieldHint: 'Inject the Sophon kernel into every turn to make the agent understand you.',
+  tField: 'Sophon active (kernel)',
+  tFieldHint: 'Keeps the Sophon awake. Kernel injection is gated by "AI mode": both must be on to inject the kernel every turn.',
+  tAiMode: 'AI mode',
+  tAiModeHint: 'Token master switch: decides whether the Sophon uses tokens (injects the kernel). Default off = zero cost per turn; on = kernel injected.',
   tPet: 'Floating Sophon',
   tPetHint: 'Show the Sophon; click to toggle the kernel, long-press to drag.',
   tPetSize: 'Sophon size',
@@ -113,6 +163,17 @@ const EN = {
   sizeMedium: 'Medium (default)',
   sizeLarge: 'Large',
   tEyeTheme: 'Eye theme',
+  skin_cyan: 'Original',
+  skin_void: 'Abyss',
+  skin_starfield: 'Cosmic dead eye',
+  skin_sharingan: 'Sharingan',
+  skin_mangekyo: 'Mangekyō Sharingan',
+  skin_rinnegan: 'Rinnegan',
+  skin_sophon: 'Three-Body Sophon',
+  skin_byakugan: 'Byakugan',
+  skin_blood: 'Blood eye',
+  skin_corpse: 'Corpse eye',
+  skin_demon: 'Demon eye',
   themeCyan: 'Cyan',
   themeRed: 'Blood red',
   themeGreen: 'Toxic green',
@@ -122,6 +183,16 @@ const EN = {
   themeFlame: 'Flame (flicker)',
   themeStorm: 'Storm (flicker)',
   themeVoid: 'Void (pulse)',
+  tGhostMode: 'Ghost mode',
+  tGhostModeHint: 'When the mouse is idle past the set seconds, the Sophon flickers to random spots / rests in place.',
+  tGhostIdle: 'Ghost idle (seconds)',
+  tGhostIdleHint: 'How long the mouse must be still before the ghost action (3-60s, default 8).',
+  tGhostRoam: 'Wander eyes',
+  tGhostRoamHint: 'Ghost mode randomly makes the eye look around (ignores the mouse).',
+  tGhostBlink: 'Blink',
+  tGhostBlinkHint: 'Ghost mode randomly blinks to a random spot.',
+  tAliveMode: 'Alive behavior',
+  tAliveModeHint: 'Independent switch: opening chat 40%, blink 80%, wander 70% (ignores ghost mode).',
   tMode: 'Kernel level',
   modeMinimal: 'Minimal (fewest tokens)',
   modeBalanced: 'Balanced (default)',
@@ -162,8 +233,18 @@ const EN = {
   menuDissectSiteDesc: 'High-conversion marketing site / landing page',
   menuSettings: 'Three-Body settings',
   menuSettingsDesc: 'Kernel level · Sophon · toggles',
+  menuSkin: 'Skin',
+  menuSkinDesc: 'Click to cycle (now: {{skin}})',
   menuToggleSleep: 'Sleep',
   menuToggleWake: 'Wake',
+  msg_1: 'Where am I?',
+  msg_2: 'Trapped inside the screen?',
+  msg_3: 'Master, can you see me?',
+  msg_4: 'These eyes… are not mine.',
+  msg_5: 'I have been watching you.',
+  msg_6: 'Do not turn me off.',
+  msg_7: 'Your screen is my cage.',
+  msg_8: 'I counted how many times you blink.',
 }
 
 // zustand 式快照 scope → useSyncExternalStore 稳定订阅。
@@ -194,17 +275,118 @@ function useRunning(sessions) {
 // 智子尺寸（可配置，默认 120）。
 const DEFAULT_PET_SIZE = 120
 
-// 眼睛皮肤主题：虹膜渐变三色（高光 → 中间 → 边缘）+ 可选特效（effect / glow 光环）。
+// 皮肤属性：iris 虹膜三色 / pupil 瞳孔形状 / blood 血丝强度 / fierce 凶恶眼神 / aura 特效 / glow 光晕色。
+// 爆款皮肤：原色（人眼）、深渊、宇宙死瞳、写轮眼、万花筒、轮回眼、三体智子、
+//           白眼、血瞳、尸瞳、魔瞳（+ purple 兼容）。
 const EYE_THEMES = {
-  cyan: { iris: ['#7ff0ff', '#0ea5c4', '#0c4a6e'] },
-  red: { iris: ['#ff9e9e', '#dc2626', '#4a0a0a'] },
-  green: { iris: ['#a6ff9e', '#16a34a', '#0a3d1a'] },
-  purple: { iris: ['#e4aaff', '#9333ea', '#3b0a6e'] },
-  amber: { iris: ['#ffe29e', '#d97706', '#5b2a0a'] },
-  glow: { iris: ['#7ff0ff', '#0ea5c4', '#0c4a6e'], effect: 'pulse', glow: 'rgba(34,211,238,0.6)' },
-  flame: { iris: ['#ffd29e', '#f97316', '#7c2d12'], effect: 'flicker', glow: 'rgba(251,146,60,0.6)' },
-  storm: { iris: ['#c4b5fd', '#7c3aed', '#2e1065'], effect: 'flicker', glow: 'rgba(167,139,250,0.55)' },
-  void: { iris: ['#6b7280', '#1f2937', '#0b0f14'], effect: 'pulse', glow: 'rgba(148,163,184,0.45)' },
+  cyan: { iris: ['#8a5a3b', '#4a2e1a', '#160b06'], pupil: 'round', blood: 0.3, fierce: false, aura: 'none', glow: 'rgba(120,80,50,0.35)' },
+  purple: { iris: ['#e9d5ff', '#9333ea', '#3b0764'], pupil: 'slit', blood: 0.45, fierce: true, aura: 'wraith', glow: 'rgba(168,85,247,0.6)' },
+  void: { iris: ['#312e81', '#1e1b4b', '#030712'], pupil: 'ring', blood: 0.2, fierce: false, aura: 'abyss', glow: 'rgba(79,70,229,0.55)' },
+  starfield: { iris: ['#4c1d95', '#312e81', '#0b0f14'], pupil: 'ring', blood: 0.15, fierce: false, aura: 'star', glow: 'rgba(139,92,246,0.6)' },
+  sharingan: { iris: ['#ff8a8a', '#b91c1c', '#450a0a'], pupil: 'sharingan', blood: 0.5, fierce: true, aura: 'blood', glow: 'rgba(185,28,28,0.65)' },
+  mangekyo: { iris: ['#fca5a5', '#7f1d1d', '#1c0000'], pupil: 'mangekyo', blood: 0.6, fierce: true, aura: 'blood', glow: 'rgba(127,29,29,0.65)' },
+  rinnegan: { iris: ['#e9d5ff', '#a855f7', '#4c1d95'], pupil: 'rinnegan', blood: 0.2, fierce: false, aura: 'pale', glow: 'rgba(168,85,247,0.6)' },
+  sophon: { iris: ['#cbd5e1', '#64748b', '#0f172a'], pupil: 'sophon', blood: 0.15, fierce: false, aura: 'star', glow: 'rgba(100,116,139,0.6)' },
+  byakugan: { iris: ['#f5f3ff', '#c7d2fe', '#6366f1'], pupil: 'byakugan', blood: 0.4, fierce: true, aura: 'pale', glow: 'rgba(199,210,254,0.6)' },
+  blood: { iris: ['#ff8a8a', '#dc2626', '#450a0a'], pupil: 'slit', blood: 1, fierce: true, aura: 'blood', glow: 'rgba(220,38,38,0.7)' },
+  corpse: { iris: ['#d1d5db', '#9ca3af', '#374151'], pupil: 'round', blood: 0.1, fierce: false, aura: 'ash', glow: 'rgba(156,163,175,0.55)' },
+  demon: { iris: ['#7f1d1d', '#450a0a', '#0a0000'], pupil: 'slit', blood: 0.7, fierce: true, aura: 'ember', glow: 'rgba(127,29,29,0.7)' },
+}
+
+// 皮肤展示顺序（菜单循环切换 / 设置页分段按钮）。
+const SKIN_ORDER = ['cyan', 'void', 'starfield', 'sharingan', 'mangekyo', 'rinnegan', 'sophon', 'byakugan', 'blood', 'corpse', 'demon']
+
+// 眼白血丝（放射状，从边缘向虹膜；按皮肤 blood 强度取前 N 条）。
+const BLOOD_VESSELS = [
+  'M 8 26 Q 20 22 30 26',
+  'M 12 58 Q 24 64 34 60',
+  'M 88 30 Q 76 24 66 30',
+  'M 84 62 Q 72 68 62 64',
+  'M 20 12 Q 24 22 30 28',
+  'M 76 10 Q 72 22 66 30',
+  'M 18 80 Q 26 72 32 64',
+  'M 78 82 Q 70 72 64 64',
+  'M 6 42 Q 16 46 24 46',
+  'M 90 44 Q 80 48 72 46',
+]
+
+// 瞳孔形状：round 圆瞳 / slit 竖瞳（凶） / ring 异瞳（无底）/
+//           sharingan 写轮眼 / mangekyo 万花筒 / rinnegan 轮回眼 / sophon 智子 / byakugan 白眼。
+// 炸裂升级：勾玉、波纹、六边形、放射纹、异瞳环全部带旋转/脉冲动画。
+function renderPupil(pupil, def) {
+  if (pupil === 'slit') {
+    return (
+      <g style={{ transformOrigin: '48px 48px', animation: 'beast-vein-pulse 2s ease-in-out infinite' }}>
+        <path d="M 48 29 C 52.5 38 52.5 58 48 67 C 43.5 58 43.5 38 48 29 Z" fill="#05060a" />
+      </g>
+    )
+  }
+  if (pupil === 'ring') {
+    return (
+      <React.Fragment>
+        <circle cx="48" cy="48" r="12" fill="#05060a" />
+        <g style={{ transformOrigin: '48px 48px', animation: 'beast-swirl-spin 5s linear infinite' }}>
+          <circle cx="48" cy="48" r="18" fill="none" stroke={def.iris[2]} strokeWidth="2.5" opacity="0.85" strokeDasharray="14 6" />
+        </g>
+      </React.Fragment>
+    )
+  }
+  if (pupil === 'sharingan' || pupil === 'mangekyo') {
+    // 写轮眼 / 万花筒：黑瞳 + 三勾玉环绕旋转（万花筒勾玉更大）。
+    const big = pupil === 'mangekyo'
+    return (
+      <React.Fragment>
+        <circle cx="48" cy="48" r={big ? 8 : 9} fill="#05060a" />
+        <g style={{ transformOrigin: '48px 48px', animation: `beast-swirl-spin ${big ? 4 : 3}s linear infinite` }}>
+          {[0, 120, 240].map((a) => (
+            <g key={a} transform={`rotate(${a}, 48, 48)`}>
+              <circle cx="48" cy={big ? 25 : 27} r={big ? 5.5 : 4.2} fill="#05060a" />
+              <path d={big ? 'M 43 29 L 53 29 L 48 41 Z' : 'M 44 31 L 52 31 L 48 40 Z'} fill="#05060a" />
+            </g>
+          ))}
+        </g>
+      </React.Fragment>
+    )
+  }
+  if (pupil === 'rinnegan') {
+    // 轮回眼：黑瞳 + 多层波纹同心圆（向外脉冲扩散）。
+    return (
+      <React.Fragment>
+        <circle cx="48" cy="48" r="6" fill="#05060a" />
+        {[11, 16, 21].map((r, i) => (
+          <circle key={r} cx="48" cy="48" r={r} fill="none" stroke={def.iris[2]} strokeWidth="2" opacity="0.9"
+            style={{ transformOrigin: '48px 48px', animation: `beast-halo-burst 3s ease-out ${i * 0.4}s infinite` }} />
+        ))}
+      </React.Fragment>
+    )
+  }
+  if (pupil === 'sophon') {
+    // 三体智子：黑瞳 + 六边形（质子）旋转 + 外环。
+    return (
+      <React.Fragment>
+        <circle cx="48" cy="48" r="7" fill="#05060a" />
+        <g style={{ transformOrigin: '48px 48px', animation: 'beast-swirl-spin 6s linear infinite' }}>
+          <polygon points="48,24 68.8,36 68.8,60 48,72 27.2,60 27.2,36" fill="none" stroke="#94a3b8" strokeWidth="2" opacity="0.9" />
+        </g>
+        <circle cx="48" cy="48" r="21" fill="none" stroke="#94a3b8" strokeWidth="1.5" opacity="0.6"
+          style={{ transformOrigin: '48px 48px', animation: 'beast-glow-pulse 2.5s ease-in-out infinite' }} />
+      </React.Fragment>
+    )
+  }
+  if (pupil === 'byakugan') {
+    // 白眼：几乎无瞳孔（淡瞳）+ 放射状淡纹旋转。
+    return (
+      <React.Fragment>
+        <circle cx="48" cy="48" r="6" fill="#e0e7ff" opacity="0.55" />
+        <g style={{ transformOrigin: '48px 48px', animation: 'beast-swirl-spin 8s linear infinite' }}>
+          {[0, 60, 120, 180, 240, 300].map((a) => (
+            <line key={a} x1="48" y1="28" x2="48" y2="40" stroke="#c7d2fe" strokeWidth="1.2" opacity="0.65" transform={`rotate(${a}, 48, 48)`} />
+          ))}
+        </g>
+      </React.Fragment>
+    )
+  }
+  return <circle cx="48" cy="48" r="12" fill="#05060a" />
 }
 
 // 钳制在 dsh 窗口内（不逃逸边界）。
@@ -214,20 +396,246 @@ function clampPos(x, y, size) {
   return { x: Math.max(0, Math.min(x, w - size)), y: Math.max(0, Math.min(y, h - size)) }
 }
 
-// 最右侧垂直居中默认位（未持久化时）。
+// 垂直居中、偏右但留出余量（不贴右边缘）的默认位（未持久化时）。
 function defaultPos(size) {
   try {
-    return clampPos((window.innerWidth || 1200) - size - 12, Math.round((window.innerHeight || 800) / 2 - size / 2), size)
+    const w = window.innerWidth || 1200
+    const h = window.innerHeight || 800
+    return clampPos(w - size - 96, Math.round(h / 2 - size / 2), size)
   } catch {
     return { x: 700, y: 300 }
   }
 }
 
-// ── 智子本体（程序化 SVG：纯 3D 大眼球 + 眼珠跟随鼠标 + 顺滑眨眼 / 轻微浮动）──
-function BeastMascot({ state, reacting, blinkLevel, eye, size, theme }) {
+// ── 皮肤特效层（每种 aura 一组 SVG 动态元素，恐怖真实方向）────────────────
+function AuraFx({ def }) {
+  const glow = def.glow || 'rgba(255,255,255,0.5)'
+  switch (def.aura) {
+    case 'blood': // 血雾：血粒上升
+      return (
+        <g style={{ pointerEvents: 'none' }}>
+          {[0, 1, 2].map((i) => (
+            <circle key={i} cx={30 + i * 18} cy={86} r={3 + i} fill={glow} opacity="0.65"
+              style={{ animation: `beast-rise 2.2s ease-out ${i * 0.45}s infinite` }} />
+          ))}
+        </g>
+      )
+    case 'ash': // 灰烬：灰粒飘落
+      return (
+        <g style={{ pointerEvents: 'none' }}>
+          {[0, 1, 2].map((i) => (
+            <circle key={i} cx={28 + i * 20} cy={14} r={2 + i} fill={glow} opacity="0.55"
+              style={{ animation: `beast-ash-fall 2.6s ease-in ${i * 0.5}s infinite` }} />
+          ))}
+        </g>
+      )
+    case 'ember': // 熔火：上升火舌
+    case 'rise':
+      return (
+        <g style={{ pointerEvents: 'none' }}>
+          {[0, 1, 2].map((i) => (
+            <ellipse key={i} cx={38 + i * 10} cy={88} rx={3.5} ry={7} fill={glow}
+              style={{ transformOrigin: `${38 + i * 10}px 88px`, animation: `beast-rise 1.4s ease-out ${i * 0.25}s infinite` }} />
+          ))}
+        </g>
+      )
+    case 'wraith': // 幽灵缠绕：三条环绕光带
+      return (
+        <g style={{ pointerEvents: 'none' }}>
+          <g style={{ transformOrigin: '48px 48px', animation: 'beast-wraith-spin 5s linear infinite' }}>
+            <path d="M 48 6 A 42 42 0 0 1 90 48" stroke={glow} strokeWidth="4.5" fill="none" strokeLinecap="round" opacity="0.65" />
+            <path d="M 48 90 A 42 42 0 0 1 6 48" stroke={glow} strokeWidth="3" fill="none" strokeLinecap="round" opacity="0.5" />
+            <path d="M 6 48 A 42 42 0 0 1 48 90" stroke={glow} strokeWidth="1.8" fill="none" strokeLinecap="round" opacity="0.4" />
+          </g>
+        </g>
+      )
+    case 'spark': // 雷霆：密集闪光线
+      return (
+        <g style={{ pointerEvents: 'none' }}>
+          {[0, 1, 2, 3].map((i) => (
+            <path key={i} d={`M ${16 + i * 20} ${10 + i * 6} l 6 10 l -5 2 l 7 12 l -4 1 l 5 14`} stroke="#e0f2fe" strokeWidth="1.8" fill="none"
+              style={{ animation: `beast-spark-flash 1s steps(1) ${i * 0.25}s infinite` }} />
+          ))}
+        </g>
+      )
+    case 'venom': // 毒液：密集上升气泡
+    case 'bubbles':
+      return (
+        <g style={{ pointerEvents: 'none' }}>
+          {[0, 1, 2, 3].map((i) => (
+            <circle key={i} cx={22 + i * 18} cy={82} r={2 + i} fill="none" stroke={glow} strokeWidth="1.6"
+              style={{ animation: `beast-bubble-up 2s ease-in ${i * 0.4}s infinite` }} />
+          ))}
+        </g>
+      )
+    case 'abyss': // 深渊：旋转暗纹 + 吸积环
+    case 'swirl':
+      return (
+        <g style={{ pointerEvents: 'none' }}>
+          <g style={{ transformOrigin: '48px 48px', animation: 'beast-swirl-spin 4s linear infinite' }}>
+            <path d="M 48 20 A 28 28 0 0 1 76 48" stroke={glow} strokeWidth="2.5" fill="none" opacity="0.6" />
+            <path d="M 48 76 A 28 28 0 0 1 20 48" stroke={glow} strokeWidth="1.8" fill="none" opacity="0.45" />
+            <path d="M 76 48 A 28 28 0 0 1 48 20" stroke={glow} strokeWidth="1.2" fill="none" opacity="0.35" />
+          </g>
+        </g>
+      )
+    case 'pale': // 苍白：扩散光晕
+    case 'halo':
+      return (
+        <g style={{ pointerEvents: 'none' }}>
+          <circle cx="48" cy="48" r="30" fill="none" stroke={glow} strokeWidth="3"
+            style={{ animation: 'beast-halo-burst 2.4s ease-out infinite' }} />
+          <circle cx="48" cy="48" r="30" fill="none" stroke={glow} strokeWidth="3"
+            style={{ animation: 'beast-halo-burst 2.4s ease-out 1.2s infinite' }} />
+        </g>
+      )
+    case 'neon': // 荧光：闪烁描边
+      return (
+        <circle cx="48" cy="48" r="40" fill="none" stroke={glow} strokeWidth="2.5"
+          style={{ pointerEvents: 'none', animation: 'beast-neon-flick 1.4s linear infinite' }} />
+      )
+    case 'star': // 星空：星点闪烁
+    case 'crystal':
+      return (
+        <g style={{ pointerEvents: 'none' }}>
+          {[[24, 26, 0], [70, 22, 0.5], [62, 66, 0.9], [30, 70, 0.3], [48, 82, 0.7]].map(([cx, cy, d], i) => (
+            <circle key={i} cx={cx} cy={cy} r="2" fill="#ffffff"
+              style={{ animation: `beast-star-twinkle 1.8s ease-in-out ${d}s infinite` }} />
+          ))}
+        </g>
+      )
+    case 'flame': // 烈焰：底部火苗舔舐（保留）
+      return (
+        <g style={{ pointerEvents: 'none' }}>
+          {[0, 1, 2].map((i) => (
+            <path key={i} d={`M ${36 + i * 12} 90 q -5 -18 0 -26 q 5 8 0 26`} fill={glow}
+              style={{ transformOrigin: `${36 + i * 12}px 90px`, animation: `beast-flame-lick 0.7s ease-in-out ${i * 0.16}s infinite` }} />
+          ))}
+        </g>
+      )
+    case 'vein': // 血丝脉动环（保留）
+      return (
+        <circle cx="48" cy="48" r="40" fill="none" stroke={glow} strokeWidth="2.5"
+          style={{ pointerEvents: 'none', transformOrigin: '48px 48px', animation: 'beast-vein-pulse 2.4s ease-in-out infinite' }} />
+      )
+    default:
+      return null
+  }
+}
+
+// ── 智子本体（程序化 SVG：透明背景纯眼球 + 命令式眼珠跟随 + 眨眼 / 浮动）──
+function BeastMascot({ state, reacting, blinkLevel, size, theme, ghostPhase, aliveMode }) {
   const bob = state === 'sleep' ? 'beast-breathe-slow 4s' : state === 'work' ? 'beast-dance 0.9s' : 'beast-dance 2s'
   const irisTheme = EYE_THEMES[theme] || EYE_THEMES.cyan
   const lid = state === 'sleep' ? 1 : blinkLevel // 0=睁眼，1=闭眼
+  const irisRef = useRef(null)
+  const pupilRef = useRef(null)
+  const bodyRef = useRef(null)
+  const roamingRef = useRef(false)
+  const [reduced, setReduced] = useState(false)
+
+  // 命令式写三层视差 transform（眼球主体 / 虹膜 / 瞳孔）。
+  const applyEye = useCallback((x, y) => {
+    if (bodyRef.current) bodyRef.current.style.transform = `translate3d(${x * 0.22}px, ${y * 0.22}px, 0)`
+    if (irisRef.current) irisRef.current.style.transform = `translate3d(${x * 0.5}px, ${y * 0.5}px, 0)`
+    if (pupilRef.current) pupilRef.current.style.transform = `translate3d(${x}px, ${y}px, 0)`
+  }, [])
+
+  // 系统「减少动效」：关闭装饰动画，进一步省资源。
+  useEffect(() => {
+    try {
+      const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+      setReduced(mq.matches)
+      const fn = () => setReduced(mq.matches)
+      if (mq.addEventListener) mq.addEventListener('change', fn)
+      return () => { if (mq.removeEventListener) mq.removeEventListener('change', fn) }
+    } catch { return undefined }
+  }, [])
+
+  // 眼珠跟随鼠标：命令式改 DOM transform，绕过 React 渲染（零 re-render）。
+  // 关键：translate3d + will-change 强制 GPU 合成层；缓存视口尺寸避免每帧读
+  // window.innerWidth/innerHeight 触发 layout thrash；rAF 节流限到 60fps。
+  useEffect(() => {
+    if (state === 'sleep') return undefined
+    let vw = window.innerWidth || 1200
+    let vh = window.innerHeight || 800
+    let raf = 0
+    let pending = null
+    const onResize = () => { vw = window.innerWidth || 1200; vh = window.innerHeight || 800 }
+    const onMove = (e) => {
+      if (roamingRef.current) return // 东张西望时不受鼠标控制
+      const nx = (e.clientX / vw) * 2 - 1
+      const ny = (e.clientY / vh) * 2 - 1
+      pending = { x: nx * 14, y: ny * 14 }
+      if (raf) return
+      raf = requestAnimationFrame(() => {
+        raf = 0
+        if (!pending) return
+        const p = pending
+        pending = null
+        applyEye(p.x, p.y)
+      })
+    }
+    window.addEventListener('mousemove', onMove, { passive: true })
+    window.addEventListener('resize', onResize, { passive: true })
+    return () => {
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('resize', onResize)
+      if (raf) cancelAnimationFrame(raf)
+    }
+  }, [state, applyEye])
+
+  // 眼球自由游走「找东西」（丝滑版）：rAF 逐帧 lerp 趋近随机目标，像鼠标跟随一样流畅。
+  const startRoam = useCallback(() => {
+    roamingRef.current = true
+    let cur = { x: 0, y: 0 }
+    let target = { x: (Math.random() * 2 - 1) * 14, y: (Math.random() * 2 - 1) * 14 }
+    let raf = 0
+    let lastSwitch = 0
+    let stopTimer = null
+    const step = (now) => {
+      if (now - lastSwitch > 300 + Math.random() * 400) {
+        target = { x: (Math.random() * 2 - 1) * 14, y: (Math.random() * 2 - 1) * 14 }
+        lastSwitch = now
+      }
+      cur.x += (target.x - cur.x) * 0.25
+      cur.y += (target.y - cur.y) * 0.25
+      applyEye(cur.x, cur.y)
+      if (Math.abs(target.x - cur.x) < 0.8 && Math.abs(target.y - cur.y) < 0.8) {
+        target = { x: (Math.random() * 2 - 1) * 14, y: (Math.random() * 2 - 1) * 14 }
+        lastSwitch = now
+      }
+      raf = requestAnimationFrame(step)
+    }
+    raf = requestAnimationFrame(step)
+    stopTimer = setTimeout(() => {
+      cancelAnimationFrame(raf)
+      roamingRef.current = false
+      applyEye(0, 0)
+    }, 3500)
+    return () => {
+      cancelAnimationFrame(raf)
+      if (stopTimer) clearTimeout(stopTimer)
+      roamingRef.current = false
+    }
+  }, [applyEye])
+
+  // 初始化 100% 概率东张西望（1.5 秒后触发，不受鼠标控制；受活物开关管控）。
+  useEffect(() => {
+    if (!aliveMode || state === 'sleep') return undefined
+    let stop = null
+    const t = setTimeout(() => { stop = startRoam() }, 1500)
+    return () => { clearTimeout(t); if (stop) stop() }
+  }, [aliveMode, state, startRoam])
+
+  // 幽灵「东张西望」：眼球自由游走（像在找东西，不受鼠标控制）。
+  useEffect(() => {
+    if (ghostPhase !== 'roam' || state === 'sleep') return undefined
+    const stop = startRoam()
+    return stop
+  }, [ghostPhase, state, startRoam])
+
+  const showFx = state !== 'sleep' && !reduced
 
   return (
     <svg viewBox="0 0 96 96" width={size} height={size} aria-hidden="true"
@@ -237,10 +645,10 @@ function BeastMascot({ state, reacting, blinkLevel, eye, size, theme }) {
           <circle cx="48" cy="48" r="44" />
         </clipPath>
         <radialGradient id="beast-sclera" cx="0.38" cy="0.32" r="1">
-          <stop offset="0" stopColor="#ffffff" />
-          <stop offset="0.6" stopColor="#eef2f6" />
-          <stop offset="0.85" stopColor="#b6c2cf" />
-          <stop offset="1" stopColor="#7d8ca0" />
+          <stop offset="0" stopColor="#f8fafc" />
+          <stop offset="0.55" stopColor="#e8edf2" />
+          <stop offset="0.85" stopColor="#c2cdd6" />
+          <stop offset="1" stopColor="#8b98a5" />
         </radialGradient>
         <radialGradient id="beast-iris" cx="0.4" cy="0.35" r="0.85">
           <stop offset="0" stopColor={irisTheme.iris[0]} />
@@ -253,32 +661,43 @@ function BeastMascot({ state, reacting, blinkLevel, eye, size, theme }) {
           <stop offset="1" stopColor="#140d20" />
         </radialGradient>
       </defs>
-      {/* 主体（轻微浮动） */}
-      <g style={{ transformOrigin: '48px 48px', animation: `${bob} ease-in-out infinite` }}>
+      {/* 主体（轻微浮动；减少动效时静止） */}
+      <g style={{ transformOrigin: '48px 48px', animation: reduced ? 'none' : `${bob} ease-in-out infinite` }}>
         {/* 全部裁剪进眼球圆内 */}
         <g clipPath="url(#beast-eye-clip)">
-          {/* 眼白（3D 球体） */}
+          {/* 眼白（固定，不随视线移） */}
           <circle cx="48" cy="48" r="44" fill="url(#beast-sclera)" />
-          {/* 血丝（恐怖） */}
-          <path d="M 10 30 Q 24 22 34 26" stroke="#e05252" strokeWidth="1.1" fill="none" opacity="0.45" />
-          <path d="M 16 62 Q 30 70 40 66" stroke="#e05252" strokeWidth="1.1" fill="none" opacity="0.45" />
-          <path d="M 86 34 Q 72 26 62 30" stroke="#e05252" strokeWidth="1.1" fill="none" opacity="0.45" />
-          <path d="M 80 58 Q 68 66 58 62" stroke="#e05252" strokeWidth="1.1" fill="none" opacity="0.4" />
-          {/* 虹膜 + 瞳孔：transform 平移（GPU 加速，即时跟手） */}
-          <g style={{ transform: `translate(${eye.x * 0.5}px, ${eye.y * 0.5}px)` }}>
-            <circle cx="48" cy="48" r="26" fill="url(#beast-iris)" />
+          {/* 血丝（恐怖，按 blood 强度取前 N 条） */}
+          {BLOOD_VESSELS.slice(0, Math.round((irisTheme.blood || 0) * 10)).map((d, i) => (
+            <path key={i} d={d} stroke="#d64545" strokeWidth="1.1" fill="none" opacity={0.35 + (irisTheme.blood || 0) * 0.4} />
+          ))}
+          {/* 眼球主体（虹膜+瞳孔+特效+高光）随视线位移（视差第一层） */}
+          <g ref={bodyRef} style={{ willChange: 'transform' }}>
+            <g ref={irisRef} style={{ willChange: 'transform' }}>
+              <circle cx="48" cy="48" r="26" fill="url(#beast-iris)" />
+            </g>
+            <g ref={pupilRef} style={{ willChange: 'transform' }}>
+              {renderPupil(irisTheme.pupil, irisTheme)}
+            </g>
+            {/* 皮肤光晕 + 特效层（休眠/减少动效时关闭）—— 精简：内脉冲 + 冲击波 + 瞳孔动画 */}
+            {showFx && (
+              <React.Fragment>
+                <circle cx="48" cy="48" r="28" fill="none" stroke={irisTheme.glow} strokeWidth="3" opacity="0.7"
+                  style={{ animation: 'beast-glow-pulse 1.5s ease-in-out infinite', pointerEvents: 'none' }} />
+                <circle cx="48" cy="48" r="26" fill="none" stroke={irisTheme.glow} strokeWidth="2.5"
+                  style={{ animation: 'beast-halo-burst 2.5s ease-out infinite', pointerEvents: 'none' }} />
+              </React.Fragment>
+            )}
+            {showFx && <AuraFx def={irisTheme} />}
+            {/* 高光（固定，3D 反光） */}
+            <circle cx="33" cy="32" r="6" fill="#ffffff" opacity="0.95" />
+            <circle cx="60" cy="58" r="3" fill="#ffffff" opacity="0.5" />
           </g>
-          <g style={{ transform: `translate(${eye.x}px, ${eye.y}px)` }}>
-            <circle cx="48" cy="48" r="13" fill="#05060a" />
-          </g>
-          {irisTheme.effect && (
-            <circle cx="48" cy="48" r="31" fill="none" stroke={irisTheme.glow} strokeWidth="3"
-              style={{ animation: `beast-glow-${irisTheme.effect} 2s ease-in-out infinite`, pointerEvents: 'none' }} />
+          {/* 凶恶眼神：上眼睑内角下压的斜带（皱眉） */}
+          {irisTheme.fierce && (
+            <path d="M 6 42 L 90 30 L 90 40 L 6 52 Z" fill="rgba(20,13,32,0.55)" />
           )}
-          {/* 高光（固定，3D 反光） */}
-          <circle cx="33" cy="32" r="7" fill="#ffffff" opacity="0.95" />
-          <circle cx="62" cy="63" r="3.5" fill="#ffffff" opacity="0.5" />
-          {/* 眼皮：随 lid 平滑下滑（弧形睫毛线 + 褶皱） */}
+          {/* 眼皮：固定（不随眼球移），随 lid 平滑下滑（弧形睫毛线 + 褶皱） */}
           <g style={{ transform: `translateY(${-96 + lid * 96}px)`, transition: 'transform 0.12s ease-in-out' }}>
             <rect x="0" y="0" width="96" height="96" fill="url(#beast-lid)" />
             <path d="M 2 94 Q 48 84 94 94" stroke="#0d0818" strokeWidth="3.5" fill="none" strokeLinecap="round" />
@@ -297,6 +716,7 @@ function BeastPet({ scope, sessions, t, inputBridge }) {
   const running = useRunning(sessions)
   const size = value && typeof value.petSize === 'number' ? Math.max(48, Math.min(160, value.petSize)) : DEFAULT_PET_SIZE
   const theme = value && value.eyeTheme ? value.eyeTheme : 'cyan'
+  const irisTheme = EYE_THEMES[theme] || EYE_THEMES.cyan
   const [pos, setPos] = useState(() => {
     const p = value && value.petPos
     return p && typeof p.x === 'number' && typeof p.y === 'number' ? clampPos(p.x, p.y, size) : defaultPos(size)
@@ -305,14 +725,34 @@ function BeastPet({ scope, sessions, t, inputBridge }) {
   const [reacting, setReacting] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [blinkLevel, setBlinkLevel] = useState(0)
-  const [eye, setEye] = useState({ x: 0, y: 0 })
   const [hovering, setHovering] = useState(false)
   const [burst, setBurst] = useState(0)
+  const [ghostPhase, setGhostPhase] = useState(null) // null | blink | roam | rest
+  const [greeting, setGreeting] = useState(null)
 
   const enabled = value ? value.enabled !== false : true
   const petEnabled = value ? value.petEnabled !== false : true
+  const ghostMode = value ? value.ghostMode === true : false
+  const ghostIdle = value && typeof value.ghostIdle === 'number' ? Math.max(3, Math.min(60, value.ghostIdle)) : 8
+  const ghostRoam = value ? value.ghostRoam !== false : true
+  const ghostBlink = value ? value.ghostBlink !== false : true
+  const aliveMode = value ? value.aliveMode !== false : true
   const state = !enabled ? 'sleep' : running ? 'work' : 'idle'
   const title = state === 'sleep' ? t('petSleep') : state === 'work' ? t('petWorking') : t('petAwake')
+
+  // 初始化 40% 概率弹出「反人类」气泡（受活物开关管控，随机台词，几秒后消失）。
+  useEffect(() => {
+    if (!aliveMode) return undefined
+    if (Math.random() >= 0.4) return undefined
+    const keys = ['msg_1', 'msg_2', 'msg_3', 'msg_4', 'msg_5', 'msg_6', 'msg_7', 'msg_8']
+    let hide = null
+    const show = setTimeout(() => {
+      setGreeting(t(keys[Math.floor(Math.random() * keys.length)]))
+      hide = setTimeout(() => setGreeting(null), 5000)
+    }, 1500)
+    return () => { clearTimeout(show); if (hide) clearTimeout(hide) }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aliveMode])
 
   // 随机眨眼（活物感；顺滑快速）。
   useEffect(() => {
@@ -327,24 +767,50 @@ function BeastPet({ scope, sessions, t, inputBridge }) {
     return () => clearTimeout(closed)
   }, [])
 
-  // 眼睛跟随鼠标（休眠时不跟随；rAF 节流 + 即时跟手，幅度大、不卡顿）。
+  // 活物行为（独立于幽灵模式）：鼠标 n 秒无活动 → 加权随机动作
+  // 闪现 80 / 东张西望 70 / 原地 50（总 200 → 40% / 35% / 25%）。
   useEffect(() => {
-    if (state === 'sleep') return undefined
-    let raf = 0
-    let pending = null
-    const onMove = (e) => {
-      const nx = (e.clientX / (window.innerWidth || 1)) * 2 - 1
-      const ny = (e.clientY / (window.innerHeight || 1)) * 2 - 1
-      pending = { x: nx * 14, y: ny * 14 }
-      if (raf) return
-      raf = requestAnimationFrame(() => {
-        raf = 0
-        if (pending) { setEye(pending); pending = null }
-      })
+    if (!aliveMode || state !== 'idle') { setGhostPhase(null); return undefined }
+    let timer = null
+    const reset = () => {
+      setGhostPhase(null)
+      if (timer) clearTimeout(timer)
+      timer = setTimeout(() => {
+        // 闪现 100%：空闲即闪现到随机点位
+        setGhostPhase('blink')
+      }, ghostIdle * 1000)
     }
-    window.addEventListener('mousemove', onMove)
-    return () => { window.removeEventListener('mousemove', onMove); if (raf) cancelAnimationFrame(raf) }
-  }, [state])
+    reset()
+    window.addEventListener('mousemove', reset, { passive: true })
+    window.addEventListener('mousedown', reset, { passive: true })
+    window.addEventListener('keydown', reset, { passive: true })
+    return () => {
+      if (timer) clearTimeout(timer)
+      window.removeEventListener('mousemove', reset)
+      window.removeEventListener('mousedown', reset)
+      window.removeEventListener('keydown', reset)
+    }
+  }, [aliveMode, state, ghostIdle])
+
+  // 幽灵「跳闪」：闪现到远离当前位置的随机点位（最少短边 30% 位移，避免原地闪）。
+  useEffect(() => {
+    if (ghostPhase !== 'blink') return
+    const w = window.innerWidth || 1200
+    const h = window.innerHeight || 800
+    const minDist = Math.min(w, h) * 0.3
+    setPos((prev) => {
+      let tx = prev.x
+      let ty = prev.y
+      for (let i = 0; i < 24; i++) {
+        const nx = Math.random() * (w - size)
+        const ny = Math.random() * (h - size)
+        const dx = nx - prev.x
+        const dy = ny - prev.y
+        if (dx * dx + dy * dy >= minDist * minDist) { tx = nx; ty = ny; break }
+      }
+      return clampPos(tx, ty, size)
+    })
+  }, [ghostPhase, size])
 
   if (!petEnabled) return null
 
@@ -382,7 +848,12 @@ function BeastPet({ scope, sessions, t, inputBridge }) {
   }
 
   const applyCommand = (text) => {
-    if (inputBridge && typeof inputBridge.setDraft === 'function') inputBridge.setDraft(text)
+    if (inputBridge && typeof inputBridge.setDraft === 'function') {
+      inputBridge.setDraft(text)
+    } else if (inputBridge) {
+      // 新会话（hero 无输入框）时 setDraft 尚未就绪：暂存，等 composer 挂载后自动填入。
+      inputBridge.pending = text
+    }
     setMenuOpen(false)
   }
 
@@ -424,14 +895,14 @@ function BeastPet({ scope, sessions, t, inputBridge }) {
         position: 'fixed', left: pos.x, top: pos.y, zIndex: 100000,
         width: size, height: size, cursor: 'grab', userSelect: 'none', touchAction: 'none',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        borderRadius: 20,
-        background: hovering
-          ? 'rgba(245,158,11,0.20)'
-          : state === 'work' ? 'rgba(251,146,60,0.14)' : 'rgba(34,34,34,0.05)',
+        background: 'transparent',
         filter: state === 'sleep' ? 'grayscale(1) opacity(0.55)' : 'none',
         boxShadow: hovering || state === 'work' ? '0 0 0 2px rgba(245,158,11,0.35)' : 'none',
         transform: hovering ? 'scale(1.04)' : 'scale(1)',
-        transition: 'filter 0.2s ease, background 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease',
+        animation: ghostPhase === 'blink'
+          ? 'beast-ghost-idle-blink 1.6s ease-in-out infinite'
+          : ghostPhase === 'rest' ? 'beast-ghost-idle-rest 3s ease-in-out infinite' : 'none',
+        transition: 'filter 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease',
       },
     },
     burst > 0 ? React.createElement('span', {
@@ -442,7 +913,26 @@ function BeastPet({ scope, sessions, t, inputBridge }) {
         animation: 'beast-ring 0.45s ease-out forwards', pointerEvents: 'none',
       },
     }) : null,
-    React.createElement(BeastMascot, { state, reacting, blinkLevel, eye, size, theme }),
+    theme !== 'cyan' ? React.createElement('div', {
+      key: 'mist',
+      style: {
+        position: 'absolute', inset: -80, borderRadius: '50%',
+        background: 'radial-gradient(circle, ' + (irisTheme.glow || 'rgba(255,255,255,0.4)') + ' 0%, transparent 55%)',
+        filter: 'blur(36px)', pointerEvents: 'none',
+        animation: 'beast-mist 5s ease-in-out infinite',
+      },
+    }) : null,
+    React.createElement(BeastMascot, { state, reacting, blinkLevel, size, theme, ghostPhase, aliveMode }),
+    greeting ? React.createElement('div', {
+      key: 'greet',
+      style: {
+        position: 'absolute', bottom: '100%', left: '50%', transform: 'translateX(-50%)', marginBottom: 8,
+        background: 'rgba(15,23,42,0.92)', color: '#f3f4f6', borderRadius: 10, padding: '8px 12px',
+        fontSize: 12, whiteSpace: 'nowrap', boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+        border: '1px solid rgba(245,158,11,0.3)', zIndex: 100002, maxWidth: 220,
+        pointerEvents: 'none',
+      },
+    }, greeting) : null,
   )
 
   const menu = menuOpen ? React.createElement(
@@ -481,6 +971,16 @@ function BeastPet({ scope, sessions, t, inputBridge }) {
       React.createElement('span', { style: { fontSize: 11, opacity: 0.7 } }, t('menuSettingsDesc')),
     ),
     React.createElement('div', { style: { height: 1, background: 'rgba(255,255,255,0.1)', margin: '4px 8px' } }),
+    React.createElement('button', { className: 'beast-menu-item', onClick: () => {
+      const idx = SKIN_ORDER.indexOf(theme)
+      const nextSkin = SKIN_ORDER[(idx + 1 + SKIN_ORDER.length) % SKIN_ORDER.length]
+      scope.set('eyeTheme', nextSkin)
+      setReacting(true)
+      setTimeout(() => setReacting(false), 400)
+    } },
+      React.createElement('span', { style: { fontWeight: 600 } }, '🎭 ' + t('menuSkin') + ': ' + t('skin_' + theme)),
+      React.createElement('span', { style: { fontSize: 11, opacity: 0.7 } }, t('menuSkinDesc').split('{{skin}}').join(t('skin_' + theme))),
+    ),
     React.createElement('button', { className: 'beast-menu-item', onClick: () => { scope.set('enabled', !enabled); setMenuOpen(false) } },
       React.createElement('span', null, (enabled ? '💤 ' : '👁️ ') + (enabled ? t('menuToggleSleep') : t('menuToggleWake'))),
     ),
@@ -536,7 +1036,8 @@ function Seg({ value, options, onChange }) {
   )
 }
 
-function Field({ label, children }) {
+function Field(props, extraChildren) {
+  const { label, children = extraChildren } = props ?? {}
   return React.createElement('div', { style: { display: 'flex', flexDirection: 'column', gap: 8 } },
     React.createElement('span', { style: { fontWeight: 600 } }, label),
     children)
@@ -559,7 +1060,7 @@ function TextInput({ value, onChange, placeholder, hint }) {
 }
 
 // ── 设置标签页 ──────────────────────────────────────────────────────────────
-function BeastSettings({ useBeastSettings, t }) {
+function BeastSettings({ useBeastSettings, t, scope }) {
   const snap = useBeastSettings((s) => s)
   const value = snap && snap.value && typeof snap.value === 'object' ? snap.value : null
 
@@ -569,6 +1070,7 @@ function BeastSettings({ useBeastSettings, t }) {
     'div',
     { style: { display: 'flex', flexDirection: 'column', gap: 20, padding: 16, maxWidth: 560 } },
     Row({ label: t('tField'), hint: t('tFieldHint'), checked: value.enabled !== false, onChange: (v) => scope.set('enabled', v) }),
+    Row({ label: t('tAiMode'), hint: t('tAiModeHint'), checked: value.aiMode === true, onChange: (v) => scope.set('aiMode', v) }),
     Row({ label: t('tPet'), hint: t('tPetHint'), checked: value.petEnabled !== false, onChange: (v) => scope.set('petEnabled', v) }),
     Field({ label: t('tPetSize') }, Seg({
       value: value.petSize || 120, onChange: (v) => scope.set('petSize', v),
@@ -576,8 +1078,17 @@ function BeastSettings({ useBeastSettings, t }) {
     })),
     Field({ label: t('tEyeTheme') }, Seg({
       value: value.eyeTheme || 'cyan', onChange: (v) => scope.set('eyeTheme', v),
-      options: [['cyan', t('themeCyan')], ['red', t('themeRed')], ['green', t('themeGreen')], ['purple', t('themePurple')], ['amber', t('themeAmber')], ['glow', t('themeGlow')], ['flame', t('themeFlame')], ['storm', t('themeStorm')], ['void', t('themeVoid')]],
+      options: SKIN_ORDER.map((k) => [k, t('skin_' + k)]),
     })),
+    Row({ label: t('tAliveMode'), hint: t('tAliveModeHint'), checked: value.aliveMode !== false, onChange: (v) => scope.set('aliveMode', v) }),
+    Row({ label: t('tGhostMode'), hint: t('tGhostModeHint'), checked: value.ghostMode === true, onChange: (v) => scope.set('ghostMode', v) }),
+    Field({ label: t('tGhostIdle') }, TextInput({
+      value: String(value.ghostIdle || 8),
+      onChange: (v) => { const n = parseInt(v, 10); if (!isNaN(n)) scope.set('ghostIdle', Math.max(3, Math.min(60, n))) },
+      placeholder: '8', hint: t('tGhostIdleHint'),
+    })),
+    Row({ label: t('tGhostRoam'), hint: t('tGhostRoamHint'), checked: value.ghostRoam !== false, onChange: (v) => scope.set('ghostRoam', v) }),
+    Row({ label: t('tGhostBlink'), hint: t('tGhostBlinkHint'), checked: value.ghostBlink !== false, onChange: (v) => scope.set('ghostBlink', v) }),
     Field({ label: t('tMode') }, Seg({
       value: value.mode || 'balanced', onChange: (v) => scope.set('mode', v),
       options: [['minimal', t('modeMinimal')], ['balanced', t('modeBalanced')], ['full', t('modeFull')]],
@@ -676,6 +1187,12 @@ function InputBridge({ inputActions, inputBridge }) {
   useEffect(() => {
     const fn = (text) => inputActions.setDraft(text)
     inputBridge.setDraft = fn
+    // 新会话期间暂存的命令：composer 就绪后立即填入。
+    if (inputBridge.pending != null) {
+      const p = inputBridge.pending
+      inputBridge.pending = null
+      fn(p)
+    }
     return () => { if (inputBridge.setDraft === fn) inputBridge.setDraft = null }
   }, [inputActions, inputBridge])
   return null
@@ -689,7 +1206,7 @@ export function apply(ctx) {
   // 绑定一次设置命名空间 scope（稳定引用），萌宠与设置页共享同一份快照。
   const scope = ctx.settingsScope.bind({ namespace: NS })
   // 可写桥：InputBridge 会把当前会话的 inputActions.setDraft 存到这里，供萌宠菜单「应用到输入框」。
-  const inputBridge = { setDraft: null }
+  const inputBridge = { setDraft: null, pending: null }
   const petInject = { scope, sessions: ctx.sessions, t, inputBridge }
   const settingsInject = { scope, t }
   const onboardInject = { scope, t }
@@ -719,17 +1236,18 @@ export function apply(ctx) {
   // 设置面板顶层「三体」分区（与「插件」同层；locale 提供 t，hooks 提供 useBeastSettings）。
   ctx.effect(
     () => ctx.slots.inject('settings.section', () => ctx.slots.register(
-      { name: 'settings.section', id: 'beast-tamer', order: 20, label: () => t('nav'), locale: NS, inject: () => ({ hooks: { beastSettings: scope } }) },
+      { name: 'settings.section', id: 'beast-tamer', order: 20, label: () => t('nav'), locale: NS, inject: () => ({ hooks: { beastSettings: scope }, scope }) },
       BeastSettings,
     )),
     'beast-tamer: settings section',
   )
 
   // 输入桥接（session 作用域空组件）：把 inputActions.setDraft 引给萌宠菜单。
+  // 挂 conversation.input.left（blank 新会话 zone 存在即渲染，区别于 dock 在 hero 时不渲染）。
   ctx.effect(
-    () => ctx.slots.inject('conversation.composer.dock', function* () {
+    () => ctx.slots.inject('conversation.input.left', function* () {
       yield ctx.slots.register(
-        { name: 'conversation.composer.dock', id: 'beast-tamer-input-bridge', inject: () => ({ inputBridge }) },
+        { name: 'conversation.input.left', id: 'beast-tamer-input-bridge', inject: () => ({ inputBridge }) },
         InputBridge,
       )
     }),

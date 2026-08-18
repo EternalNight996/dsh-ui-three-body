@@ -19,6 +19,7 @@ export const inject = ['systemPrompt', 'settings']
 
 export const Config = z.object({
   enabled: z.boolean().default(true),
+  aiMode: z.boolean().default(false),
   mode: z.union(['minimal', 'balanced', 'full']).default('balanced'),
   lang: z.union(['zh', 'en']).default('zh'),
   tone: z.union(['arrogant', 'gentle', 'warm']).default('arrogant'),
@@ -26,8 +27,13 @@ export const Config = z.object({
   userTitle: z.string().default('主上'),
   petEnabled: z.boolean().default(true),
   petSize: z.number().default(120),
-  eyeTheme: z.union(['cyan', 'red', 'green', 'purple', 'amber', 'glow', 'flame', 'storm', 'void']).default('cyan'),
+  eyeTheme: z.union(['cyan', 'purple', 'void', 'starfield', 'sharingan', 'mangekyo', 'rinnegan', 'sophon', 'byakugan', 'blood', 'corpse', 'demon']).default('cyan'),
   petPos: z.union([z.object({ x: z.number(), y: z.number() }), z.const(null)]).default(null),
+  ghostMode: z.boolean().default(false),
+  ghostIdle: z.number().default(8),
+  ghostRoam: z.boolean().default(true),
+  ghostBlink: z.boolean().default(true),
+  aliveMode: z.boolean().default(true),
   analyzeTool: z.boolean().default(false),
   kernelOverride: z.string().default(''),
   onboarded: z.boolean().default(false),
@@ -56,7 +62,7 @@ export function apply(ctx, config) {
         disposeSection = null
         dispose()
       }
-      if (!cfg || cfg.enabled === false) return
+      if (!cfg || cfg.enabled === false || cfg.aiMode !== true) return
       const text = resolveText(cfg)
       if (!text) return
       disposeSection = ctx.systemPrompt.section({

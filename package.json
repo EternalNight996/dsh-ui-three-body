@@ -1,6 +1,6 @@
 {
   "name": "dsh-ui-three-body",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "驯兽师（驯兽场）：把人类语言翻译给智能体的 DSH 插件——注入「开智」内核（第一性原理 + 需求剖析 + 极简沟通 + 最少 token），左上角悬浮萌宠，设置页可配内核与开关。",
   "license": "MIT",
   "repository": {
