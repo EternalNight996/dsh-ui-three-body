@@ -7,17 +7,16 @@
 // 通过 `locale` 做中英双语；通过 `sessions` 读取当前会话 running 状态驱动情绪态。
 
 import React, { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
-import lottie from 'lottie-web/build/player/lottie_light'
-import idleAnim from '../../assets/pet-idle.json'
-import workAnim from '../../assets/pet-work.json'
-import sleepAnim from '../../assets/pet-sleep.json'
 
 const NS = 'beast-tamer'
 
-// 情绪态 → Lottie 动画（可替换成真实导出；结构/尺寸建议 96×96）。
-const ANIMS = { idle: idleAnim, work: workAnim, sleep: sleepAnim }
-// emoji 兜底（lottie 加载失败时使用）。
-const FACES = { idle: '🐾', work: '🔥', sleep: '💤' }
+// 程序化动画关键帧（内联注入，零依赖；替代 Lottie）。
+const CSS = `
+@keyframes beast-breathe { 0%,100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+@keyframes beast-breathe-slow { 0%,100% { transform: scale(1); } 50% { transform: scale(1.02); } }
+@keyframes beast-breathe-fast { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+@keyframes beast-tail { 0%,100% { transform: rotate(-5deg); } 50% { transform: rotate(8deg); } }
+`
 
 // settingsScope.bind 内部会 ctx.get('connection') / ctx.get('remote')，
 // sessions 提供当前会话 running 信号；locale 提供中英双语。
@@ -63,6 +62,10 @@ const ZH = {
   obMode: '内核档位',
   obStart: '开始驯兽',
   obSkip: '先用默认',
+  menuTame: '/tame',
+  menuTameDesc: '触发驯兽四式：剖析→定靶→呈策→驭兽',
+  menuToggleSleep: '休眠',
+  menuToggleWake: '唤醒',
 }
 const EN = {
   nav: 'Beast Ground',
@@ -103,6 +106,10 @@ const EN = {
   obMode: 'Kernel level',
   obStart: 'Begin taming',
   obSkip: 'Use defaults',
+  menuTame: '/tame',
+  menuTameDesc: 'Run the Four Maneuvers: dissect → target → plan → tame',
+  menuToggleSleep: 'Sleep',
+  menuToggleWake: 'Wake',
 }
 
 // zustand 式快照 scope → useSyncExternalStore 稳定订阅。
@@ -141,8 +148,51 @@ function defaultPos() {
   }
 }
 
+// 菜单项统一样式。
+const menuItemStyle = {
+  display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2,
+  width: '100%', textAlign: 'left', padding: '8px 10px', borderRadius: 8,
+  border: 'none', background: 'transparent', color: '#f3f4f6', cursor: 'pointer', fontSize: 13,
+}
+
+// ── 萌宠本体（程序化 SVG：呼吸 / 眨眼 / 尾巴 / 眼睛跟随鼠标）──────────────
+function BeastMascot({ state, reacting, blink, eye }) {
+  const breathing = state === 'sleep' ? 'beast-breathe-slow 3.6s' : state === 'work' ? 'beast-breathe-fast 0.9s' : 'beast-breathe 2.4s'
+  const tailSpeed = state === 'work' ? '1.1s' : state === 'sleep' ? '4s' : '2.6s'
+  const eyesClosed = blink || state === 'sleep'
+
+  return React.createElement('svg', {
+    viewBox: '0 0 96 96', width: 48, height: 48, 'aria-hidden': true,
+    style: { display: 'block', transform: reacting ? 'scale(1.18)' : 'scale(1)', transition: 'transform 0.18s ease' },
+  },
+    React.createElement('g', { style: { transformOrigin: '68px 66px', animation: `beast-tail ${tailSpeed} ease-in-out infinite` } },
+      React.createElement('path', { d: 'M 68 66 C 83 58 91 70 82 80', fill: 'none', stroke: '#F59E0B', strokeWidth: 7, strokeLinecap: 'round' }),
+    ),
+    React.createElement('g', { style: { transformOrigin: '48px 52px', animation: `${breathing} ease-in-out infinite` } },
+      React.createElement('path', { d: 'M 26 28 L 21 11 L 38 21 Z', fill: '#F59E0B' }),
+      React.createElement('path', { d: 'M 70 28 L 75 11 L 58 21 Z', fill: '#F59E0B' }),
+      React.createElement('circle', { cx: 48, cy: 52, r: 34, fill: '#FBBF24' }),
+      React.createElement('ellipse', { cx: 48, cy: 62, rx: 18, ry: 15, fill: '#FDE68A' }),
+      React.createElement('path', { d: 'M 48 18 C 46 9 51 9 48 18 Z', fill: '#B45309' }),
+      React.createElement('path', { d: 'M 38 56 L 58 56 L 48 68 Z', fill: '#7C2D12' }),
+      eyesClosed
+        ? React.createElement('g', { key: 'closed' },
+            React.createElement('path', { d: 'M 33 46 Q 38 49 43 46', fill: 'none', stroke: '#1F2937', strokeWidth: 2.5, strokeLinecap: 'round' }),
+            React.createElement('path', { d: 'M 53 46 Q 58 49 63 46', fill: 'none', stroke: '#1F2937', strokeWidth: 2.5, strokeLinecap: 'round' }),
+          )
+        : React.createElement('g', { key: 'open' },
+            React.createElement('circle', { cx: 38, cy: 46, r: 7, fill: '#ffffff' }),
+            React.createElement('circle', { cx: 58, cy: 46, r: 7, fill: '#ffffff' }),
+            React.createElement('circle', { cx: 38 + eye.x, cy: 46 + eye.y, r: 3.5, fill: '#1F2937' }),
+            React.createElement('circle', { cx: 58 + eye.x, cy: 46 + eye.y, r: 3.5, fill: '#1F2937' }),
+          ),
+      React.createElement('path', { d: 'M 42 60 Q 48 64 54 60', fill: 'none', stroke: '#7C2D12', strokeWidth: 2, strokeLinecap: 'round' }),
+    ),
+  )
+}
+
 // ── 悬浮萌宠 ────────────────────────────────────────────────────────────────
-function BeastPet({ scope, sessions, t }) {
+function BeastPet({ scope, sessions, t, inputBridge }) {
   const snap = useScope(scope)
   const value = snap && snap.value && typeof snap.value === 'object' ? snap.value : null
   const running = useRunning(sessions)
@@ -152,39 +202,43 @@ function BeastPet({ scope, sessions, t }) {
   })
   const dragRef = useRef(null)
   const [reacting, setReacting] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [blink, setBlink] = useState(false)
+  const [eye, setEye] = useState({ x: 0, y: 0 })
 
   const enabled = value ? value.enabled !== false : true
   const petEnabled = value ? value.petEnabled !== false : true
   if (!petEnabled) return null
 
   const state = !enabled ? 'sleep' : running ? 'work' : 'idle'
-  const face = FACES[state]
   const title = state === 'sleep' ? t('petSleep') : state === 'work' ? t('petWorking') : t('petAwake')
-  const containerRef = useRef(null)
-  const [lottieOk, setLottieOk] = useState(true)
 
-  // 按情绪态加载对应 Lottie 动画；失败则回退 emoji。
+  // 随机眨眼（活物感）。
   useEffect(() => {
-    const el = containerRef.current
-    if (!el || !lottieOk) return undefined
-    let anim
-    try {
-      anim = lottie.loadAnimation({
-        container: el,
-        renderer: 'svg',
-        loop: true,
-        autoplay: state !== 'sleep',
-        animationData: ANIMS[state] || ANIMS.idle,
-      })
-      if (state === 'sleep') anim.goToAndStop(0, true)
-      return () => anim.destroy()
-    } catch {
-      setLottieOk(false)
-      return undefined
+    let closed
+    const schedule = () => {
+      closed = setTimeout(() => {
+        setBlink(true)
+        setTimeout(() => { setBlink(false); schedule() }, 130)
+      }, 2000 + Math.random() * 4000)
     }
-  }, [state, lottieOk])
+    schedule()
+    return () => clearTimeout(closed)
+  }, [])
 
-  // 长按拖拽：按住 280ms 后进入拖拽态；快速点按 = 切换内核。
+  // 眼睛跟随鼠标（休眠时不跟随）。
+  useEffect(() => {
+    if (state === 'sleep') return undefined
+    const onMove = (e) => {
+      const nx = (e.clientX / (window.innerWidth || 1)) * 2 - 1
+      const ny = (e.clientY / (window.innerHeight || 1)) * 2 - 1
+      setEye({ x: nx * 3, y: ny * 3 })
+    }
+    window.addEventListener('mousemove', onMove)
+    return () => window.removeEventListener('mousemove', onMove)
+  }, [state])
+
+  // 长按拖拽：按住 280ms 后进入拖拽态；快速点按 = 弹出菜单。
   const onPointerDown = (e) => {
     const timer = setTimeout(() => { if (dragRef.current) dragRef.current.armed = true }, 280)
     dragRef.current = {
@@ -208,15 +262,20 @@ function BeastPet({ scope, sessions, t }) {
     const wasDrag = d.armed && d.moved
     dragRef.current = null
     if (wasDrag) {
-      scope.set('petPos', pos) // 持久化到 settings 文件
+      scope.set('petPos', pos)
     } else {
-      scope.set('enabled', !enabled) // 点按切换内核
+      setMenuOpen((v) => !v)
       setReacting(true)
       setTimeout(() => setReacting(false), 400)
     }
   }
 
-  return React.createElement(
+  const applyCommand = (text) => {
+    if (inputBridge && typeof inputBridge.setDraft === 'function') inputBridge.setDraft(text)
+    setMenuOpen(false)
+  }
+
+  const petDiv = React.createElement(
     'div',
     {
       role: 'button',
@@ -232,13 +291,39 @@ function BeastPet({ scope, sessions, t }) {
         background: state === 'work' ? 'rgba(251,146,60,0.14)' : 'rgba(34,34,34,0.06)',
         filter: state === 'sleep' ? 'grayscale(1) opacity(0.55)' : 'none',
         boxShadow: state === 'work' ? '0 0 0 4px rgba(251,146,60,0.18)' : 'none',
-        transition: 'filter 0.2s ease, background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease',
-        transform: reacting ? 'scale(1.18)' : 'scale(1)',
+        transition: 'filter 0.2s ease, background 0.2s ease, box-shadow 0.2s ease',
       },
     },
-    lottieOk
-      ? React.createElement('div', { ref: containerRef, style: { width: 48, height: 48, pointerEvents: 'none' } })
-      : React.createElement('span', { style: { fontSize: 32, lineHeight: 1 } }, face),
+    React.createElement(BeastMascot, { state, reacting, blink, eye }),
+  )
+
+  const menu = menuOpen ? React.createElement(
+    'div',
+    { key: 'menu', onClick: (e) => e.stopPropagation(), style: {
+      position: 'fixed', left: Math.max(8, pos.x - 240), top: Math.min((window.innerHeight || 800) - 140, pos.y),
+      zIndex: 100001, minWidth: 220, borderRadius: 12, overflow: 'hidden',
+      background: 'rgba(17,24,39,0.97)', color: '#f3f4f6', boxShadow: '0 16px 48px rgba(0,0,0,0.4)', padding: 6,
+    } },
+    React.createElement('button', { onClick: () => applyCommand('/tame '), style: menuItemStyle },
+      React.createElement('span', { style: { fontWeight: 700, fontFamily: 'monospace' } }, t('menuTame')),
+      React.createElement('span', { style: { fontSize: 11, opacity: 0.7 } }, t('menuTameDesc')),
+    ),
+    React.createElement('div', { style: { height: 1, background: 'rgba(255,255,255,0.1)', margin: '4px 8px' } }),
+    React.createElement('button', { onClick: () => { scope.set('enabled', !enabled); setMenuOpen(false) }, style: menuItemStyle },
+      React.createElement('span', null, enabled ? t('menuToggleSleep') : t('menuToggleWake')),
+    ),
+  ) : null
+
+  const backdrop = menuOpen ? React.createElement('div', {
+    key: 'backdrop', onClick: () => setMenuOpen(false),
+    style: { position: 'fixed', inset: 0, zIndex: 99999, background: 'transparent' },
+  }) : null
+
+  return React.createElement(React.Fragment, null,
+    React.createElement('style', { key: 'css' }, CSS),
+    petDiv,
+    backdrop,
+    menu,
   )
 }
 
@@ -406,6 +491,16 @@ function FirstRunModal({ scope, t }) {
   )
 }
 
+// ── 输入桥接（session 作用域空组件）：把当前会话的 setDraft 引给 root 层萌宠 ──
+function InputBridge({ inputActions, inputBridge }) {
+  useEffect(() => {
+    const fn = (text) => inputActions.setDraft(text)
+    inputBridge.setDraft = fn
+    return () => { if (inputBridge.setDraft === fn) inputBridge.setDraft = null }
+  }, [inputActions, inputBridge])
+  return null
+}
+
 // ── apply ───────────────────────────────────────────────────────────────────
 export function apply(ctx) {
   ctx.effect(() => ctx.locale.register(NS, { zh: ZH, en: EN }), 'beast-tamer: locale dictionaries')
@@ -413,7 +508,9 @@ export function apply(ctx) {
 
   // 绑定一次设置命名空间 scope（稳定引用），萌宠与设置页共享同一份快照。
   const scope = ctx.settingsScope.bind({ namespace: NS })
-  const petInject = { scope, sessions: ctx.sessions, t }
+  // 可写桥：InputBridge 会把当前会话的 inputActions.setDraft 存到这里，供萌宠菜单「应用到输入框」。
+  const inputBridge = { setDraft: null }
+  const petInject = { scope, sessions: ctx.sessions, t, inputBridge }
   const settingsInject = { scope, t }
   const onboardInject = { scope, t }
 
@@ -448,5 +545,16 @@ export function apply(ctx) {
       )
     }),
     'beast-tamer: settings tab',
+  )
+
+  // 输入桥接（session 作用域空组件）：把 inputActions.setDraft 引给萌宠菜单。
+  ctx.effect(
+    () => ctx.slots.inject('conversation.composer.dock', function* () {
+      yield ctx.slots.register(
+        { name: 'conversation.composer.dock', id: 'beast-tamer-input-bridge', inject: () => ({ inputBridge }) },
+        InputBridge,
+      )
+    }),
+    'beast-tamer: input bridge',
   )
 }

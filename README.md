@@ -108,9 +108,9 @@ pnpm build      # 生成 lib/client.js
 
 按优先级排列：
 
-1. **萌宠立绘** ⭐ 只剩这一步：Lottie 已接入（`assets/pet-idle|work|sleep.json` 三个占位动画，待命呼吸/工作脉冲/休眠闭眼），`BeastPet` 按情绪态自动切换、加载失败回退 emoji。把三个 JSON 换成你导出的真实 Lottie 动画即可（96×96，见 [`docs/MASCOT.md`](docs/MASCOT.md)）。
+1. **萌宠立绘** ⭐ 只剩这一步：已用**程序化内联 SVG**（呼吸/眨眼/尾巴/眼睛跟随鼠标，零依赖）替代 Lottie，三态情绪（休眠/待命/工作）自动切换。想更好看，用 Figma/即时设计画个 SVG 萌宠替换 `BeastMascot` 里的矢量即可，动画逻辑不动（见 [`docs/MASCOT.md`](docs/MASCOT.md)）。
 2. ~~萌宠位置 & 持久化~~ ✅ 已做：默认右侧中间、长按拖拽、`petPos` 持久化到 settings 文件。
-3. **发布元数据**：把 `package.json` 的 `<你的用户名>` 换成真实 GitHub 用户名；然后按 [`PUBLISH.md`](PUBLISH.md) 走 git push + npm publish。
+3. **发布元数据**：`package.json` 的 repository/homepage 已填 `EternalNight996`；按 [`PUBLISH.md`](PUBLISH.md) 走 git push + npm publish。
 4. ~~品牌人设~~ ✅ 已做：内核「驯兽师」人设，且语气/自称/称呼**首次使用时弹窗可选可填**（不再写死）。
 5. ~~多语言~~ ✅ 已做：内核中英双语 + 设置页/萌宠走 `locale` 服务中英切换。
 6. ~~需求剖析工具~~ ✅ 已做：`beast_analyze`（默认关，设置页可开），设计见 [`docs/ANALYZE.md`](docs/ANALYZE.md)。
