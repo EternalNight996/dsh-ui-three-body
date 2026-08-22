@@ -37,14 +37,16 @@
 
 ```bash
 # 已发布后（npm）
-npx @deepseek-ai/dsh plugin --profile web add dsh-ui-three-body
+dsh plugin --profile web add dsh-ui-three-body
 
 # 从 GitHub
-npx @deepseek-ai/dsh plugin --profile web add github:EternalNight996/dsh-ui-three-body
+dsh plugin --profile web add github:EternalNight996/dsh-ui-three-body
 
 # 本地联调（link 本地目录，改代码即时生效）
-npx @deepseek-ai/dsh plugin --profile web add F:/MyApp/eternal/dsh-ui-three-body
+dsh plugin --profile web add F:/MyApp/eternal/dsh-ui-three-body
 ```
+
+> 💡 推荐搭配 [**dsh-desktop**](https://github.com/EternalNight996/dsh-desktop)（DeepSeek Harness 桌面壳）使用，桌面版上智子视觉与性能体验最佳。
 
 装完**重启 dsh web**：悬浮智子出现在屏幕右侧（右留 96px），点击弹菜单、长按拖拽。
 
