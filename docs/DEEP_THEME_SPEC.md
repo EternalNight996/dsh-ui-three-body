@@ -8,7 +8,7 @@
 
 ```bash
 # 安装主题插件（完成后）
-dsh plugin --profile web add github:EternalNight996/dsh-ui-deep-theme
+npx @deepseek-ai/dsh plugin --profile web add github:EternalNight996/dsh-ui-deep-theme
 
 # 推荐先装 dsh-desktop（桌面壳，主题插件体验最佳）
 #   GitHub：https://github.com/EternalNight996/dsh-desktop
@@ -23,7 +23,7 @@ dsh plugin --profile web add github:EternalNight996/dsh-ui-deep-theme
 - **项目名**：`dsh-ui-deep-theme`（DeepSeek Harness 主题皮肤插件）
 - **类型**：DSH 客户端插件（`dsh.client` + `shell.overlay`），含宿主半边 `settings` 命名空间
 - **目标**：让用户给 DSH Web GUI 换背景/主题，支持 3 种皮肤形态：内置主题 / 静态图片 / 动态视频
-- **安装**：`dsh plugin --profile web add <路径>`，装后侧边栏底部「🎨 主题」按钮 + 设置 → **主题** 分区可切换
+- **安装**：`npx @deepseek-ai/dsh plugin --profile web add <路径>`，装后侧边栏底部「🎨 主题」按钮 + 设置 → **主题** 分区可切换
 
 ## 二、核心需求（三大点）
 
@@ -142,7 +142,7 @@ dsh-ui-deep-theme/
 6. 切换主题平滑过渡（淡入，不硬切）
 7. 持久化：重启后主题保留
 8. 不挡任何 UI 交互；明暗模式适配
-9. 导出成品附：**一条安装命令**（`dsh plugin …`）+ **2 张效果截图**（明/暗各一）+ **`npm publish` 包名**（`dsh-ui-deep-theme@0.1.0`）
+9. 导出成品附：**一条安装命令**（`npx @deepseek-ai/dsh plugin …`）+ **2 张效果截图**（明/暗各一）+ **`npm publish` 包名**（`dsh-ui-deep-theme@0.1.0`）
 
 ## 九、注意事项/边界
 
@@ -153,4 +153,4 @@ dsh-ui-deep-theme/
 - **不改 dsh 源码**：通过标准 slot（`settings.section`、`sidebar.footer.action`、`shell.overlay`）+ settings 命名空间实现
 
 ---
-> 使用/安装推荐：[dsh-desktop](https://github.com/EternalNight996/dsh-desktop)（DeepSeek Harness 桌面壳）+ `dsh plugin` 安装。
+> 使用/安装推荐：[dsh-desktop](https://github.com/EternalNight996/dsh-desktop)（DeepSeek Harness 桌面壳）+ `npx @deepseek-ai/dsh plugin` 安装。
