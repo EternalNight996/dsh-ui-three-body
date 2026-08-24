@@ -19,7 +19,7 @@ export const inject = ['systemPrompt', 'settings']
 
 export const Config = z.object({
   enabled: z.boolean().default(true),
-  aiMode: z.boolean().default(false),
+  aiMode: z.boolean().default(true),
   mode: z.union(['minimal', 'balanced', 'full']).default('balanced'),
   lang: z.union(['zh', 'en']).default('zh'),
   tone: z.union(['arrogant', 'gentle', 'warm']).default('arrogant'),
