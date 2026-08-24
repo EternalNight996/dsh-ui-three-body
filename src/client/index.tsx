@@ -254,6 +254,46 @@ function useScope(scope) {
   return useSyncExternalStore(subscribe, getSnapshot)
 }
 
+// 读取当前会话的「目标」投影（DSH goal，progress = roundsStarted / maxGoalRounds）。
+// 通过 sessions.binding(id).session.projections.faceOf('goal') 读（cross-scope 也拿得到）。
+function useGoal(sessions) {
+  const subscribe = useCallback((cb) => {
+    if (!sessions || !sessions.list || typeof sessions.binding !== 'function') return () => {}
+    let last = null
+    let faceSub = null
+    let sSub = null
+    const detach = () => { if (faceSub) { faceSub(); faceSub = null } }
+    const attach = () => {
+      const snap = sessions.list.getSnapshot()
+      const cur = snap && snap.current
+      if (cur === last) return
+      detach()
+      last = cur
+      if (cur == null) return
+      try {
+        const b = sessions.binding(cur)
+        const face = b && b.session && b.session.projections ? b.session.projections.faceOf('goal') : null
+        if (face) faceSub = face.subscribe(cb)
+      } catch {}
+    }
+    attach()
+    sSub = sessions.list.subscribe(() => { attach(); cb() })
+    return () => { detach(); if (sSub) sSub(); last = null }
+  }, [sessions])
+  const getSnapshot = useCallback(() => {
+    if (!sessions || !sessions.list || typeof sessions.binding !== 'function') return null
+    try {
+      const snap = sessions.list.getSnapshot()
+      const cur = snap && snap.current
+      if (cur == null) return null
+      const b = sessions.binding(cur)
+      const face = b && b.session && b.session.projections ? b.session.projections.faceOf('goal') : null
+      return face ? (face.getSnapshot() || null) : null
+    } catch { return null }
+  }, [sessions])
+  return useSyncExternalStore(subscribe, getSnapshot)
+}
+
 // 读取当前会话是否 running（有会话在跑 = 工作中）。
 function useRunning(sessions) {
   const subscribe = useCallback((cb) => (sessions && sessions.list ? sessions.list.subscribe(cb) : () => {}), [sessions])
@@ -714,6 +754,8 @@ function BeastPet({ scope, sessions, t, inputBridge }) {
   const snap = useScope(scope)
   const value = snap && snap.value && typeof snap.value === 'object' ? snap.value : null
   const running = useRunning(sessions)
+  const goalProj = useGoal(sessions)
+  const goal = goalProj && goalProj.goal ? goalProj.goal : null
   const size = value && typeof value.petSize === 'number' ? Math.max(48, Math.min(160, value.petSize)) : DEFAULT_PET_SIZE
   const theme = value && value.eyeTheme ? value.eyeTheme : 'cyan'
   const irisTheme = EYE_THEMES[theme] || EYE_THEMES.cyan
@@ -740,6 +782,11 @@ function BeastPet({ scope, sessions, t, inputBridge }) {
   const aliveMode = value ? value.aliveMode !== false : true
   const state = !enabled ? 'sleep' : running ? 'work' : 'idle'
   const title = state === 'sleep' ? t('petSleep') : state === 'work' ? t('petWorking') : t('petAwake')
+  const progressPct = goal
+    ? goal.phase === 'complete' ? 100
+      : (goalProj.roundsStarted || 0) / (goal.maxGoalRounds || 1) >= 1 ? 100
+        : Math.round(((goalProj.roundsStarted || 0) / (goal.maxGoalRounds || 1)) * 100)
+    : 0
 
   // 初始化 40% 概率弹出「反人类」气泡（受活物开关管控，随机台词，几秒后消失）。
   useEffect(() => {
@@ -927,23 +974,33 @@ function BeastPet({ scope, sessions, t, inputBridge }) {
     React.createElement('div', {
       key: 'prog',
       onClick: (e) => { e.stopPropagation(); setProgressOpen(!progressOpen); },
-      title: running ? '智子 · 驭兽中（点击展开进度）' : '智子 · 待命（点击查看）',
+      title: goal ? '智子 · 驭兽中（点击展开目标进度）' : running ? '智子 · 驭兽中（点击查看）' : '智子 · 待命（点击查看）',
       style: { position: 'absolute', bottom: '100%', left: 0, right: 0, marginBottom: 4, cursor: 'pointer', zIndex: 100002 },
     },
-      React.createElement('div', { style: { height: 5, borderRadius: 3, background: 'rgba(120,120,120,0.25)', border: '1px solid rgba(245,158,11,0.25)', overflow: 'hidden' } },
-        running
-          ? React.createElement('div', { style: { height: '100%', width: '45%', borderRadius: 3, background: 'linear-gradient(90deg,#f59e0b,#f43f5e,#f59e0b)', backgroundSize: '200% 100%', animation: 'beast-mist 1.4s linear infinite' } })
-          : React.createElement('div', { style: { height: '100%', width: '0%' } }),
+      React.createElement('div', { style: { height: 6, borderRadius: 3, background: 'rgba(120,120,120,0.25)', border: '1px solid rgba(245,158,11,0.3)', overflow: 'hidden' } },
+        React.createElement('div', {
+          style: {
+            height: '100%', width: goal ? progressPct + '%' : running ? '45%' : '0%',
+            borderRadius: 3,
+            background: 'linear-gradient(90deg,#f59e0b,#f43f5e,#f59e0b)',
+            backgroundSize: '200% 100%',
+            animation: running && !goal ? 'beast-mist 1.4s linear infinite' : 'none',
+            transition: 'width 0.4s ease',
+          },
+        }),
       ),
       progressOpen && React.createElement('div', {
         key: 'progbody',
-        style: { marginTop: 6, background: 'rgba(15,23,42,0.92)', color: '#f3f4f6', borderRadius: 10, padding: '8px 10px', fontSize: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.5)', border: '1px solid rgba(245,158,11,0.3)', whiteSpace: 'normal', minWidth: 180, pointerEvents: 'none' },
+        style: { marginTop: 6, background: 'rgba(15,23,42,0.92)', color: '#f3f4f6', borderRadius: 10, padding: '8px 10px', fontSize: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.5)', border: '1px solid rgba(245,158,11,0.3)', whiteSpace: 'normal', minWidth: 200, pointerEvents: 'none' },
       },
-        React.createElement('div', { style: { fontWeight: 700, marginBottom: 6 } }, running ? '🔄 智子 · 驭兽中' : '👁️ 智子 · 待命'),
-        React.createElement('div', { style: { fontSize: 12, opacity: 0.85, lineHeight: 1.7 } },
-          '驯兽五步：', React.createElement('br', null),
-          '① 问清 → ② 方案 → ③ 章程 → ④ 执行 → ⑤ 交付', React.createElement('br', null),
-          '当前：' + (running ? '执行中（内核已注入开智）' : '待命（AI 模式关 = 零 token）'),
+        React.createElement('div', { style: { fontWeight: 700, marginBottom: 6 } }, goal ? '🎯 目标中 · ' + goal.phase : (running ? '🔄 智子 · 驭兽中' : '👁️ 智子 · 待命')),
+        goal ? React.createElement('div', { style: { fontSize: 12, opacity: 0.9, lineHeight: 1.6, marginBottom: 6 } },
+          goal.objective,
+          ' · 进度 ' + progressPct + '%' + (goal.maxGoalRounds ? '（' + (goalProj.roundsStarted || 0) + '/' + goal.maxGoalRounds + ' 轮）' : ''),
+        ) : null,
+        React.createElement('div', { style: { fontSize: 11, opacity: 0.75, lineHeight: 1.7 } },
+          '驯兽五步：① 问清 → ② 方案 → ③ 章程 → ④ 执行 → ⑤ 交付', React.createElement('br', null),
+          '当前：' + (goal ? '目标进行中（自动轮次，进度条实时）' : running ? '执行中（内核已注入）' : '待命'),
         ),
       ),
     ),
