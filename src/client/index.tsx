@@ -349,6 +349,13 @@ function useRunning(sessions) {
 // 智子尺寸（可配置，默认 120）。
 const DEFAULT_PET_SIZE = 64
 
+// 截断成短标题（目标/步骤过长时只留前若干字 + 省略号）。
+function shortTitle(s, n = 22) {
+  if (!s) return ''
+  const txt = String(s).replace(/\s+/g, ' ').trim()
+  return txt.length > n ? txt.slice(0, n) + '…' : txt
+}
+
 // 皮肤属性：iris 虹膜三色 / pupil 瞳孔形状 / blood 血丝强度 / fierce 凶恶眼神 / aura 特效 / glow 光晕色。
 // 爆款皮肤：原色（人眼）、深渊、宇宙死瞳、写轮眼、万花筒、轮回眼、三体智子、
 //           白眼、血瞳、尸瞳、魔瞳（+ purple 兼容）。
@@ -833,9 +840,11 @@ function BeastPet({ scope, sessions, t, inputBridge }) {
   const currentStep = todos.find((it) => it.status === 'in_progress') || todos.find((it) => it.status === 'pending')
   const headStatus = todos.length > 0
     ? '📋 ' + doneTodos + '/' + todos.length + ' 步 · ' + progressPct + '%'
-    : (goal ? '🎯 ' + goal.objective + ' · ' + progressPct + '%' : (running ? '🔄 智子 · 驭兽中' : '👁️ 智子 · 待命'))
-  const headFocus = currentStep ? currentStep.content
-    : (goal ? (goal.phase === 'complete' ? '目标已完成' : '目标：' + goal.objective) : '')
+    : (goal ? '🎯 ' + shortTitle(goal.objective) + ' · ' + progressPct + '%' : (running ? '🔄 智子 · 驭兽中' : '👁️ 智子 · 待命'))
+  const headFocus = currentStep ? shortTitle(currentStep.content, 26)
+    : (goal ? (goal.phase === 'complete' ? '目标已完成' : shortTitle(goal.objective, 26)) : '')
+
+  // 头顶常驻「进度 + 短标题」：进度一眼可见，完整目标只在展开列表里给短标题。
 
   // 暖心对话：开「对话」后，每隔 5-10s 随机说一句安抚的话，显示 5s 后收起再计时。
   // 受对话开关与活物开关管控；休眠时不说话。
@@ -1090,10 +1099,10 @@ function BeastPet({ scope, sessions, t, inputBridge }) {
             key: it.content,
             style: { opacity: it.status === 'completed' ? 0.55 : 1, textDecoration: it.status === 'completed' ? 'line-through' : 'none' },
           },
-            (idx + 1) + '. ' + (it.status === 'completed' ? '✅ ' : it.status === 'in_progress' ? '▶ ' : '○ ') + it.content,
+            (idx + 1) + '. ' + (it.status === 'completed' ? '✅ ' : it.status === 'in_progress' ? '▶ ' : '○ ') + shortTitle(it.content, 26),
           )),
         ) : (goal ? React.createElement('div', { style: { fontSize: 12, opacity: 0.9, lineHeight: 1.6, marginBottom: 6 } },
-          goal.objective,
+          shortTitle(goal.objective, 28),
           ' · 进度 ' + progressPct + '%',
         ) : null),
         React.createElement('div', { style: { fontSize: 11, opacity: 0.75, lineHeight: 1.7 } },
