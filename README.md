@@ -16,6 +16,18 @@
   <em>智子菜单：智子五策 / 需求剖析 / 皮肤循环切换 / 休眠</em>
 </p>
 
+<p align="center">
+  <img src="assets/screen/sophon-core.png" width="640" alt="智子在 DSH 界面：头顶目标进度 + 智子五策面板" />
+  <br/>
+  <em>智子核心：悬停智子展开「目标显示」——头顶进度 + <strong>智子五策</strong>（展开→降维→面壁→水滴→收拢），任务步列表实时同步</em>
+</p>
+
+<p align="center">
+  <img src="assets/screen/sophon-target-talk.png" width="360" alt="智子暖心对话气泡" />
+  <br/>
+  <em>智子暖心对话：紫色智子 + 安抚气泡「有我在，你不必一个人硬撑。」，头顶进度条显示目标标题</em>
+</p>
+
 ---
 
 ## ✨ 为什么值得装（爆款推荐）
