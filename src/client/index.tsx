@@ -994,19 +994,21 @@ function BeastPet({ scope, sessions, t, inputBridge }) {
     React.createElement(BeastMascot, { state, reacting, blinkLevel, size, theme, ghostPhase, aliveMode }),
     React.createElement('div', {
       key: 'prog',
-      onClick: (e) => { e.stopPropagation(); setProgressOpen(!progressOpen); },
-      title: hasProgress ? '智子 · 驭兽中 · 任务进度 ' + progressPct + '%（点击展开）' : running ? '智子 · 驭兽中（点击查看）' : '智子 · 待命（点击查看）',
-      style: { position: 'absolute', bottom: '100%', left: '50%', transform: 'translateX(-50%)', marginBottom: 6, cursor: 'pointer', zIndex: 100002, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, width: 'min(280px, calc(100vw - 24px))' },
+      onMouseEnter: () => setProgressOpen(true),
+      onMouseLeave: () => setProgressOpen(false),
+      onClick: (e) => { e.stopPropagation(); setProgressOpen(true); },
+      title: hasProgress ? '智子 · 驭兽中 · 任务进度 ' + progressPct + '%（悬浮/点击展开）' : running ? '智子 · 驭兽中（悬浮查看）' : '智子 · 待命（悬浮查看）',
+      style: { position: 'absolute', bottom: '100%', left: 0, right: 0, marginBottom: 4, cursor: 'pointer', zIndex: 100002, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 },
     },
       React.createElement('div', {
         key: 'progtext',
         style: {
-          pointerEvents: 'none', textAlign: 'center', maxWidth: 300,
+          pointerEvents: 'none', textAlign: 'center', maxWidth: '100%',
           overflow: 'hidden',
         },
       },
         React.createElement('div', { style: { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: 11, fontWeight: 700, color: '#fde68a', lineHeight: 1.3, background: 'rgba(15,23,42,0.9)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: 8, padding: '3px 8px' } }, headStatus),
-        headFocus ? React.createElement('div', { style: { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: 10, opacity: 0.85, color: '#f3f4f6', lineHeight: 1.3, marginTop: 2, maxWidth: 300, background: 'rgba(15,23,42,0.75)', borderRadius: 6, padding: '2px 6px' } }, headFocus) : null,
+        headFocus ? React.createElement('div', { style: { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: 10, opacity: 0.85, color: '#f3f4f6', lineHeight: 1.3, marginTop: 2, maxWidth: '100%', background: 'rgba(15,23,42,0.75)', borderRadius: 6, padding: '2px 6px' } }, headFocus) : null,
       ),
       React.createElement('div', { style: { height: 6, borderRadius: 3, background: 'rgba(120,120,120,0.25)', border: '1px solid rgba(245,158,11,0.3)', overflow: 'hidden', width: '100%' } },
         React.createElement('div', {
@@ -1022,7 +1024,7 @@ function BeastPet({ scope, sessions, t, inputBridge }) {
       ),
       progressOpen && React.createElement('div', {
         key: 'progbody',
-        style: { marginTop: 6, background: 'rgba(15,23,42,0.92)', color: '#f3f4f6', borderRadius: 10, padding: '8px 10px', fontSize: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.5)', border: '1px solid rgba(245,158,11,0.3)', whiteSpace: 'normal', minWidth: 200, pointerEvents: 'none' },
+        style: { marginTop: 6, background: 'rgba(15,23,42,0.92)', color: '#f3f4f6', borderRadius: 10, padding: '8px 10px', fontSize: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.5)', border: '1px solid rgba(245,158,11,0.3)', whiteSpace: 'normal', minWidth: 200, maxWidth: 340, alignSelf: 'center' },
       },
         React.createElement('div', { style: { fontWeight: 700, marginBottom: 6 } },
           todos.length > 0 ? '📋 任务步 · 已完成 ' + doneTodos + '/' + todos.length
