@@ -106,7 +106,7 @@ ctx.slots.inject('shell.overlay') → BeastPet
 
 ```
 点击梦魔
-   ├─ /tame            → 输入框填入 "/tame "（触发驯兽四式）
+   ├─ /tame            → 输入框填入 "/tame "（触发智子五策）
    ├─ 驯兽场设置       → 尽力打开 设置 → 插件 → 驯兽场
    └─ 休眠 / 唤醒       → 开关 enabled（内核注入）
 ```
@@ -151,7 +151,7 @@ flowchart TD
   A[菜单点 /tame] --> B[inputBridge.setDraft 填入输入框]
   B --> C[用户回车发送]
   C --> D[内核已注入 system prompt]
-  D --> E[agent 按驯兽四式执行: 剖析→定靶→呈策→驭兽]
+  D --> E[agent 按智子五策执行: 展开→降维→面壁→水滴→收拢]
 ```
 
 ### ④ beast_analyze（开启后）
