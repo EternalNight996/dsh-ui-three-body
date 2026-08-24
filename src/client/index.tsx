@@ -1097,7 +1097,7 @@ function BeastPet({ scope, sessions, t, inputBridge }) {
           ' · 进度 ' + progressPct + '%',
         ) : null),
         React.createElement('div', { style: { fontSize: 11, opacity: 0.75, lineHeight: 1.7 } },
-          '驯兽五步：① 问清 → ② 方案 → ③ 章程 → ④ 执行 → ⑤ 交付', React.createElement('br', null),
+          '智子五策：① 展开(问清) → ② 降维(方案) → ③ 面壁(契约) → ④ 水滴(执行) → ⑤ 收拢(交付)', React.createElement('br', null),
           '进度 = 任务步完成度（done 计 1 / in_progress 计 0.5）', React.createElement('br', null),
           '当前：' + (todos.length > 0 ? '执行中（内核已注入，进度条实时）' : goal ? '目标进行中' : running ? '执行中（内核已注入）' : '待命'),
         ),
