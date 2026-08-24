@@ -59,6 +59,8 @@ const ZH = {
   tPet: '悬浮智子',
   tPetHint: '右侧显示智子，点击开关内核、长按拖拽。',
   tPetSize: '智子尺寸',
+  sizeNano: '极微',
+  sizeTiny: '微',
   sizeSmall: '小',
   sizeMedium: '中（默认）',
   sizeLarge: '大',
@@ -159,6 +161,8 @@ const EN = {
   tPet: 'Floating Sophon',
   tPetHint: 'Show the Sophon; click to toggle the kernel, long-press to drag.',
   tPetSize: 'Sophon size',
+  sizeNano: 'Nano',
+  sizeTiny: 'Tiny',
   sizeSmall: 'Small',
   sizeMedium: 'Medium (default)',
   sizeLarge: 'Large',
@@ -797,6 +801,14 @@ function BeastPet({ scope, sessions, t, inputBridge }) {
     ? Math.round(((doneTodos + activeTodos * 0.5) / todos.length) * 100)
     : (goal ? (goal.phase === 'complete' ? 100 : 0) : 0)
 
+  // 头顶常驻「进度 + 文字」：状态行 + 当前焦点行，跟 dsh 对话框的目标/计划同步。
+  const currentStep = todos.find((it) => it.status === 'in_progress') || todos.find((it) => it.status === 'pending')
+  const headStatus = todos.length > 0
+    ? '📋 ' + doneTodos + '/' + todos.length + ' 步 · ' + progressPct + '%'
+    : (goal ? '🎯 ' + goal.objective + ' · ' + progressPct + '%' : (running ? '🔄 智子 · 驭兽中' : '👁️ 智子 · 待命'))
+  const headFocus = currentStep ? currentStep.content
+    : (goal ? (goal.phase === 'complete' ? '目标已完成' : '目标：' + goal.objective) : '')
+
   // 初始化 40% 概率弹出「反人类」气泡（受活物开关管控，随机台词，几秒后消失）。
   useEffect(() => {
     if (!aliveMode) return undefined
@@ -984,9 +996,19 @@ function BeastPet({ scope, sessions, t, inputBridge }) {
       key: 'prog',
       onClick: (e) => { e.stopPropagation(); setProgressOpen(!progressOpen); },
       title: hasProgress ? '智子 · 驭兽中 · 任务进度 ' + progressPct + '%（点击展开）' : running ? '智子 · 驭兽中（点击查看）' : '智子 · 待命（点击查看）',
-      style: { position: 'absolute', bottom: '100%', left: 0, right: 0, marginBottom: 4, cursor: 'pointer', zIndex: 100002 },
+      style: { position: 'absolute', bottom: '100%', left: 0, right: 0, marginBottom: 4, cursor: 'pointer', zIndex: 100002, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 },
     },
-      React.createElement('div', { style: { height: 6, borderRadius: 3, background: 'rgba(120,120,120,0.25)', border: '1px solid rgba(245,158,11,0.3)', overflow: 'hidden' } },
+      React.createElement('div', {
+        key: 'progtext',
+        style: {
+          pointerEvents: 'none', textAlign: 'center', maxWidth: 300,
+          overflow: 'hidden',
+        },
+      },
+        React.createElement('div', { style: { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: 11, fontWeight: 700, color: '#fde68a', lineHeight: 1.3, background: 'rgba(15,23,42,0.9)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: 8, padding: '3px 8px' } }, headStatus),
+        headFocus ? React.createElement('div', { style: { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: 10, opacity: 0.85, color: '#f3f4f6', lineHeight: 1.3, marginTop: 2, maxWidth: 300, background: 'rgba(15,23,42,0.75)', borderRadius: 6, padding: '2px 6px' } }, headFocus) : null,
+      ),
+      React.createElement('div', { style: { height: 6, borderRadius: 3, background: 'rgba(120,120,120,0.25)', border: '1px solid rgba(245,158,11,0.3)', overflow: 'hidden', width: '100%' } },
         React.createElement('div', {
           style: {
             height: '100%', width: hasProgress ? progressPct + '%' : running ? '45%' : '0%',
@@ -1174,7 +1196,7 @@ function BeastSettings({ useBeastSettings, t, scope }) {
     Row({ label: t('tPet'), hint: t('tPetHint'), checked: value.petEnabled !== false, onChange: (v) => scope.set('petEnabled', v) }),
     Field({ label: t('tPetSize') }, Seg({
       value: value.petSize || 120, onChange: (v) => scope.set('petSize', v),
-      options: [[96, t('sizeSmall')], [120, t('sizeMedium')], [160, t('sizeLarge')]],
+      options: [[48, t('sizeNano')], [64, t('sizeTiny')], [96, t('sizeSmall')], [120, t('sizeMedium')], [160, t('sizeLarge')]],
     })),
     Field({ label: t('tEyeTheme') }, Seg({
       value: value.eyeTheme || 'cyan', onChange: (v) => scope.set('eyeTheme', v),
