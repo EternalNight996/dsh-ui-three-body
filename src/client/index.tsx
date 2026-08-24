@@ -729,6 +729,7 @@ function BeastPet({ scope, sessions, t, inputBridge }) {
   const [burst, setBurst] = useState(0)
   const [ghostPhase, setGhostPhase] = useState(null) // null | blink | roam | rest
   const [greeting, setGreeting] = useState(null)
+  const [progressOpen, setProgressOpen] = useState(false)
 
   const enabled = value ? value.enabled !== false : true
   const petEnabled = value ? value.petEnabled !== false : true
@@ -923,10 +924,33 @@ function BeastPet({ scope, sessions, t, inputBridge }) {
       },
     }) : null,
     React.createElement(BeastMascot, { state, reacting, blinkLevel, size, theme, ghostPhase, aliveMode }),
+    React.createElement('div', {
+      key: 'prog',
+      onClick: (e) => { e.stopPropagation(); setProgressOpen(!progressOpen); },
+      title: running ? '智子 · 驭兽中（点击展开进度）' : '智子 · 待命（点击查看）',
+      style: { position: 'absolute', bottom: '100%', left: 0, right: 0, marginBottom: 4, cursor: 'pointer', zIndex: 100002 },
+    },
+      React.createElement('div', { style: { height: 5, borderRadius: 3, background: 'rgba(120,120,120,0.25)', border: '1px solid rgba(245,158,11,0.25)', overflow: 'hidden' } },
+        running
+          ? React.createElement('div', { style: { height: '100%', width: '45%', borderRadius: 3, background: 'linear-gradient(90deg,#f59e0b,#f43f5e,#f59e0b)', backgroundSize: '200% 100%', animation: 'beast-mist 1.4s linear infinite' } })
+          : React.createElement('div', { style: { height: '100%', width: '0%' } }),
+      ),
+      progressOpen && React.createElement('div', {
+        key: 'progbody',
+        style: { marginTop: 6, background: 'rgba(15,23,42,0.92)', color: '#f3f4f6', borderRadius: 10, padding: '8px 10px', fontSize: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.5)', border: '1px solid rgba(245,158,11,0.3)', whiteSpace: 'normal', minWidth: 180, pointerEvents: 'none' },
+      },
+        React.createElement('div', { style: { fontWeight: 700, marginBottom: 6 } }, running ? '🔄 智子 · 驭兽中' : '👁️ 智子 · 待命'),
+        React.createElement('div', { style: { fontSize: 12, opacity: 0.85, lineHeight: 1.7 } },
+          '驯兽五步：', React.createElement('br', null),
+          '① 问清 → ② 方案 → ③ 章程 → ④ 执行 → ⑤ 交付', React.createElement('br', null),
+          '当前：' + (running ? '执行中（内核已注入开智）' : '待命（AI 模式关 = 零 token）'),
+        ),
+      ),
+    ),
     greeting ? React.createElement('div', {
       key: 'greet',
       style: {
-        position: 'absolute', bottom: '100%', left: '50%', transform: 'translateX(-50%)', marginBottom: 8,
+        position: 'absolute', bottom: '100%', left: '50%', transform: 'translateX(-50%)', marginBottom: 34,
         background: 'rgba(15,23,42,0.92)', color: '#f3f4f6', borderRadius: 10, padding: '8px 12px',
         fontSize: 12, whiteSpace: 'nowrap', boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
         border: '1px solid rgba(245,158,11,0.3)', zIndex: 100002, maxWidth: 220,
