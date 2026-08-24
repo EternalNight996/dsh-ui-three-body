@@ -26,7 +26,7 @@ export const Config = z.object({
   selfName: z.string().default('本尊'),
   userTitle: z.string().default('主上'),
   petEnabled: z.boolean().default(true),
-  petSize: z.number().default(120),
+  petSize: z.number().default(64),
   eyeTheme: z.union(['cyan', 'purple', 'void', 'starfield', 'sharingan', 'mangekyo', 'rinnegan', 'sophon', 'byakugan', 'blood', 'corpse', 'demon']).default('cyan'),
   petPos: z.union([z.object({ x: z.number(), y: z.number() }), z.const(null)]).default(null),
   ghostMode: z.boolean().default(false),

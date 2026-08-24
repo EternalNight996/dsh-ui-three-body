@@ -321,7 +321,7 @@ function useRunning(sessions) {
 }
 
 // 智子尺寸（可配置，默认 120）。
-const DEFAULT_PET_SIZE = 120
+const DEFAULT_PET_SIZE = 64
 
 // 皮肤属性：iris 虹膜三色 / pupil 瞳孔形状 / blood 血丝强度 / fierce 凶恶眼神 / aura 特效 / glow 光晕色。
 // 爆款皮肤：原色（人眼）、深渊、宇宙死瞳、写轮眼、万花筒、轮回眼、三体智子、
@@ -996,7 +996,7 @@ function BeastPet({ scope, sessions, t, inputBridge }) {
       key: 'prog',
       onClick: (e) => { e.stopPropagation(); setProgressOpen(!progressOpen); },
       title: hasProgress ? '智子 · 驭兽中 · 任务进度 ' + progressPct + '%（点击展开）' : running ? '智子 · 驭兽中（点击查看）' : '智子 · 待命（点击查看）',
-      style: { position: 'absolute', bottom: '100%', left: 0, right: 0, marginBottom: 4, cursor: 'pointer', zIndex: 100002, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 },
+      style: { position: 'absolute', bottom: '100%', left: '50%', transform: 'translateX(-50%)', marginBottom: 6, cursor: 'pointer', zIndex: 100002, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, width: 'min(280px, calc(100vw - 24px))' },
     },
       React.createElement('div', {
         key: 'progtext',
@@ -1027,12 +1027,12 @@ function BeastPet({ scope, sessions, t, inputBridge }) {
         React.createElement('div', { style: { fontWeight: 700, marginBottom: 6 } },
           todos.length > 0 ? '📋 任务步 · 已完成 ' + doneTodos + '/' + todos.length
             : (goal ? '🎯 目标中 · ' + goal.phase : (running ? '🔄 智子 · 驭兽中' : '👁️ 智子 · 待命'))),
-        todos.length > 0 ? React.createElement('ul', { style: { fontSize: 12, lineHeight: 1.8, margin: '0 0 6px', paddingLeft: 16 } },
-          todos.map((it) => React.createElement('li', {
+        todos.length > 0 ? React.createElement('ul', { style: { fontSize: 12, lineHeight: 1.8, margin: '0 0 6px', paddingLeft: 6, listStyle: 'none' } },
+          todos.map((it, idx) => React.createElement('li', {
             key: it.content,
             style: { opacity: it.status === 'completed' ? 0.55 : 1, textDecoration: it.status === 'completed' ? 'line-through' : 'none' },
           },
-            (it.status === 'completed' ? '✅ ' : it.status === 'in_progress' ? '▶ ' : '○ ') + it.content,
+            (idx + 1) + '. ' + (it.status === 'completed' ? '✅ ' : it.status === 'in_progress' ? '▶ ' : '○ ') + it.content,
           )),
         ) : (goal ? React.createElement('div', { style: { fontSize: 12, opacity: 0.9, lineHeight: 1.6, marginBottom: 6 } },
           goal.objective,
@@ -1195,7 +1195,7 @@ function BeastSettings({ useBeastSettings, t, scope }) {
     Row({ label: t('tAiMode'), hint: t('tAiModeHint'), checked: value.aiMode === true, onChange: (v) => scope.set('aiMode', v) }),
     Row({ label: t('tPet'), hint: t('tPetHint'), checked: value.petEnabled !== false, onChange: (v) => scope.set('petEnabled', v) }),
     Field({ label: t('tPetSize') }, Seg({
-      value: value.petSize || 120, onChange: (v) => scope.set('petSize', v),
+      value: value.petSize || 64, onChange: (v) => scope.set('petSize', v),
       options: [[48, t('sizeNano')], [64, t('sizeTiny')], [96, t('sizeSmall')], [120, t('sizeMedium')], [160, t('sizeLarge')]],
     })),
     Field({ label: t('tEyeTheme') }, Seg({
