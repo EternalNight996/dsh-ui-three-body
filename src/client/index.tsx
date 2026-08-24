@@ -35,6 +35,8 @@ const CSS = `
 @keyframes beast-bubble-up { 0% { transform: translateY(0); opacity: 0.8; } 100% { transform: translateY(-34px); opacity: 0; } }
 @keyframes beast-swirl-spin { 0% { transform: rotate(0deg) scale(1); } 100% { transform: rotate(360deg) scale(1.12); } }
 @keyframes beast-halo-burst { 0% { transform: scale(0.62); opacity: 0.8; } 100% { transform: scale(1.7); opacity: 0; } }
+@keyframes beast-aura-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+@keyframes beast-aura-pulse { 0%,100% { opacity: 0.55; } 50% { opacity: 1; } }
 @keyframes beast-neon-flick { 0%,100% { opacity: 0.35; } 20% { opacity: 1; } 40% { opacity: 0.2; } 55% { opacity: 0.95; } 70% { opacity: 0.4; } 85% { opacity: 1; } }
 @keyframes beast-star-twinkle { 0%,100% { opacity: 0.15; } 50% { opacity: 1; } }
 @keyframes beast-ghost-idle-blink { 0%,100% { opacity: 1; } 8% { opacity: 0.15; } 16% { opacity: 1; } 24% { opacity: 0.25; } 32% { opacity: 1; } }
@@ -94,7 +96,11 @@ const ZH = {
   tGhostBlink: '闪现',
   tGhostBlinkHint: '幽灵模式随机触发闪现到随机点位。',
   tAliveMode: '活物行为',
-  tAliveModeHint: '独立开关：初始对话 40%、闪现 80%、东张西望 70%（不受幽灵模式影响）。',
+  tAliveModeHint: '独立开关：闪现 80%、东张西望 70%（不受幽灵模式影响）。',
+  tShowGoal: '目标显示',
+  tShowGoalHint: '眼睛头顶显示目标/计划进度条与文字。',
+  tChat: '暖心对话',
+  tChatHint: '每隔 5-10 秒随机说一句安抚的话。',
   tMode: '内核档位',
   modeMinimal: '极简（最省 token）',
   modeBalanced: '均衡（默认）',
@@ -147,6 +153,14 @@ const ZH = {
   msg_6: '别关掉我。',
   msg_7: '你的屏幕，是我的牢笼。',
   msg_8: '我数过你眨眼的次数。',
+  soothe_1: '别急，主上，慢慢来。',
+  soothe_2: '这一步不容易，但你已经走对了。',
+  soothe_3: '累了就歇一会儿，我守着。',
+  soothe_4: '交给我，你只需要想清楚方向。',
+  soothe_5: '世界很大，我们一步一个脚印。',
+  soothe_6: '有我在，你不必一个人硬撑。',
+  soothe_7: '慢慢拆，剩下的交给时间。',
+  soothe_8: '你已经做得很好了，主上。',
 }
 const EN = {
   nav: 'Three-Body',
@@ -196,7 +210,11 @@ const EN = {
   tGhostBlink: 'Blink',
   tGhostBlinkHint: 'Ghost mode randomly blinks to a random spot.',
   tAliveMode: 'Alive behavior',
-  tAliveModeHint: 'Independent switch: opening chat 40%, blink 80%, wander 70% (ignores ghost mode).',
+  tAliveModeHint: 'Independent switch: blink 80%, wander 70% (ignores ghost mode).',
+  tShowGoal: 'Goal display',
+  tShowGoalHint: 'Show goal/plan progress bar and text above the eye.',
+  tChat: 'Cozy talk',
+  tChatHint: 'Say a soothing line randomly every 5-10 seconds.',
   tMode: 'Kernel level',
   modeMinimal: 'Minimal (fewest tokens)',
   modeBalanced: 'Balanced (default)',
@@ -249,6 +267,14 @@ const EN = {
   msg_6: 'Do not turn me off.',
   msg_7: 'Your screen is my cage.',
   msg_8: 'I counted how many times you blink.',
+  soothe_1: 'Easy, master. One step at a time.',
+  soothe_2: 'This step is hard, but you are on the right track.',
+  soothe_3: 'Rest if you must. I will keep watch.',
+  soothe_4: 'Leave it to me. Just focus on the direction.',
+  soothe_5: 'The world is wide. One step at a time.',
+  soothe_6: 'You are not alone. I am here.',
+  soothe_7: 'Break it down. Time will do the rest.',
+  soothe_8: 'You are doing great, master.',
 }
 
 // zustand 式快照 scope → useSyncExternalStore 稳定订阅。
@@ -790,6 +816,8 @@ function BeastPet({ scope, sessions, t, inputBridge }) {
   const ghostRoam = value ? value.ghostRoam !== false : true
   const ghostBlink = value ? value.ghostBlink !== false : true
   const aliveMode = value ? value.aliveMode !== false : true
+  const showGoal = value ? value.showGoal !== false : true
+  const chatEnabled = value ? value.chatEnabled === true : true
   const state = !enabled ? 'sleep' : running ? 'work' : 'idle'
   const title = state === 'sleep' ? t('petSleep') : state === 'work' ? t('petWorking') : t('petAwake')
   // 进度真实来源：任务步（todos）。done 计 1，in_progress 计 0.5，pending 0。
@@ -809,19 +837,26 @@ function BeastPet({ scope, sessions, t, inputBridge }) {
   const headFocus = currentStep ? currentStep.content
     : (goal ? (goal.phase === 'complete' ? '目标已完成' : '目标：' + goal.objective) : '')
 
-  // 初始化 40% 概率弹出「反人类」气泡（受活物开关管控，随机台词，几秒后消失）。
+  // 暖心对话：开「对话」后，每隔 5-10s 随机说一句安抚的话，显示 5s 后收起再计时。
+  // 受对话开关与活物开关管控；休眠时不说话。
   useEffect(() => {
-    if (!aliveMode) return undefined
-    if (Math.random() >= 0.4) return undefined
-    const keys = ['msg_1', 'msg_2', 'msg_3', 'msg_4', 'msg_5', 'msg_6', 'msg_7', 'msg_8']
+    if (!chatEnabled || !aliveMode || state === 'sleep') { setGreeting(null); return undefined }
+    const pool = ['soothe_1', 'soothe_2', 'soothe_3', 'soothe_4', 'soothe_5', 'soothe_6', 'soothe_7', 'soothe_8']
     let hide = null
-    const show = setTimeout(() => {
-      setGreeting(t(keys[Math.floor(Math.random() * keys.length)]))
-      hide = setTimeout(() => setGreeting(null), 5000)
-    }, 1500)
-    return () => { clearTimeout(show); if (hide) clearTimeout(hide) }
+    let timer = null
+    const schedule = () => {
+      timer = setTimeout(() => {
+        setGreeting(t(pool[Math.floor(Math.random() * pool.length)]))
+        hide = setTimeout(() => {
+          setGreeting(null)
+          schedule()
+        }, 5000)
+      }, 5000 + Math.random() * 5000)
+    }
+    schedule()
+    return () => { clearTimeout(timer); if (hide) clearTimeout(hide) }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [aliveMode])
+  }, [chatEnabled, aliveMode, state])
 
   // 随机眨眼（活物感；顺滑快速）。
   useEffect(() => {
@@ -982,17 +1017,38 @@ function BeastPet({ scope, sessions, t, inputBridge }) {
         animation: 'beast-ring 0.45s ease-out forwards', pointerEvents: 'none',
       },
     }) : null,
-    theme !== 'cyan' ? React.createElement('div', {
-      key: 'mist',
-      style: {
-        position: 'absolute', inset: -80, borderRadius: '50%',
-        background: 'radial-gradient(circle, ' + (irisTheme.glow || 'rgba(255,255,255,0.4)') + ' 0%, transparent 55%)',
-        filter: 'blur(36px)', pointerEvents: 'none',
-        animation: 'beast-mist 5s ease-in-out infinite',
-      },
-    }) : null,
+    theme !== 'cyan' ? React.createElement(React.Fragment, { key: 'mist' },
+      React.createElement('div', {
+        style: {
+          position: 'absolute', inset: -90, borderRadius: '50%',
+          background: 'radial-gradient(circle, ' + (irisTheme.glow || 'rgba(255,255,255,0.4)') + ' 0%, transparent 42%)',
+          filter: 'blur(34px)', pointerEvents: 'none',
+          animation: 'beast-aura-pulse 3.4s ease-in-out infinite, beast-mist 5s ease-in-out infinite',
+        },
+      }),
+      React.createElement('div', {
+        style: {
+          position: 'absolute', inset: -18, borderRadius: '50%',
+          background: 'conic-gradient(from 0deg, transparent 0deg, ' + (irisTheme.glow || 'rgba(255,255,255,0.5)') + ' 90deg, transparent 190deg, ' + (irisTheme.glow || 'rgba(255,255,255,0.5)') + ' 270deg, transparent 360deg)',
+          WebkitMask: 'radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px))',
+          mask: 'radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px))',
+          filter: 'blur(1px)', pointerEvents: 'none',
+          animation: 'beast-aura-spin 4s linear infinite',
+          opacity: 0.9,
+        },
+      }),
+      React.createElement('div', {
+        style: {
+          position: 'absolute', inset: -34, borderRadius: '50%',
+          background: 'radial-gradient(circle, ' + (irisTheme.glow || 'rgba(255,255,255,0.4)') + ' 0%, transparent 60%)',
+          filter: 'blur(22px)', pointerEvents: 'none',
+          animation: 'beast-aura-pulse 2.2s ease-in-out infinite',
+          opacity: 0.5,
+        },
+      }),
+    ) : null,
     React.createElement(BeastMascot, { state, reacting, blinkLevel, size, theme, ghostPhase, aliveMode }),
-    React.createElement('div', {
+    showGoal && React.createElement('div', {
       key: 'prog',
       onMouseEnter: () => setProgressOpen(true),
       onMouseLeave: () => setProgressOpen(false),
@@ -1206,6 +1262,8 @@ function BeastSettings({ useBeastSettings, t, scope }) {
     })),
     Row({ label: t('tAliveMode'), hint: t('tAliveModeHint'), checked: value.aliveMode !== false, onChange: (v) => scope.set('aliveMode', v) }),
     Row({ label: t('tGhostMode'), hint: t('tGhostModeHint'), checked: value.ghostMode === true, onChange: (v) => scope.set('ghostMode', v) }),
+    Row({ label: t('tShowGoal'), hint: t('tShowGoalHint'), checked: value.showGoal !== false, onChange: (v) => scope.set('showGoal', v) }),
+    Row({ label: t('tChat'), hint: t('tChatHint'), checked: value.chatEnabled === true, onChange: (v) => scope.set('chatEnabled', v) }),
     Field({ label: t('tGhostIdle') }, TextInput({
       value: String(value.ghostIdle || 8),
       onChange: (v) => { const n = parseInt(v, 10); if (!isNaN(n)) scope.set('ghostIdle', Math.max(3, Math.min(60, n))) },

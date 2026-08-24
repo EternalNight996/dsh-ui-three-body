@@ -34,6 +34,8 @@ export const Config = z.object({
   ghostRoam: z.boolean().default(true),
   ghostBlink: z.boolean().default(true),
   aliveMode: z.boolean().default(true),
+  showGoal: z.boolean().default(true),
+  chatEnabled: z.boolean().default(true),
   analyzeTool: z.boolean().default(false),
   kernelOverride: z.string().default(''),
   onboarded: z.boolean().default(false),
