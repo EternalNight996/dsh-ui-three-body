@@ -1068,12 +1068,12 @@ function BeastPet({ scope, sessions, t, inputBridge }) {
       React.createElement('div', {
         key: 'progtext',
         style: {
-          pointerEvents: 'none', textAlign: 'center', maxWidth: '100%',
+          pointerEvents: 'none', textAlign: 'center', maxWidth: 280,
           overflow: 'hidden',
         },
       },
         React.createElement('div', { style: { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: 11, fontWeight: 700, color: '#fde68a', lineHeight: 1.3, background: 'rgba(15,23,42,0.9)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: 8, padding: '3px 8px' } }, headStatus),
-        headFocus ? React.createElement('div', { style: { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: 10, opacity: 0.85, color: '#f3f4f6', lineHeight: 1.3, marginTop: 2, maxWidth: '100%', background: 'rgba(15,23,42,0.75)', borderRadius: 6, padding: '2px 6px' } }, headFocus) : null,
+        headFocus ? React.createElement('div', { style: { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: 10, opacity: 0.85, color: '#f3f4f6', lineHeight: 1.3, marginTop: 2, maxWidth: 280, background: 'rgba(15,23,42,0.75)', borderRadius: 6, padding: '2px 6px' } }, headFocus) : null,
       ),
       React.createElement('div', { style: { height: 6, borderRadius: 3, background: 'rgba(120,120,120,0.25)', border: '1px solid rgba(245,158,11,0.3)', overflow: 'hidden', width: '100%' } },
         React.createElement('div', {
