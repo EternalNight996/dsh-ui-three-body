@@ -10,6 +10,7 @@
 
 > **把一句话人话，逼成一份可评审、可执行、可落地、可验收的产品方案；并且不过闸不交付。**
 > **🎙 语音实时交互（规划中）**：内置 / 本地大模型（whisper + Ollama + Piper）三驱动下拉可选，开口即可指挥智子在 DSH 上实时开发、跨工作区干活。
+> **👁 视觉实时交互（规划中）**：眼球实时跟随摄像头里的人形移动（视觉跟踪，对接 uvc-camera）。
 > 全自研、零第三方记忆框架、不改 DSH 源码、一条命令安装——为你装一个「自己说了算」的、可 git 管理的本地交付流水线。
 
 <p align="center"><strong>⭐ 觉得好用就点个 Star</strong>，让更多被「AI 交付不放心」困扰的人用上它。<br/><sub>一条命令：<code>dsh plugin --profile web add dsh-ui-three-body</code></sub></p>
@@ -125,6 +126,15 @@ flowchart LR
 - **开口即干**：语音 → `/tame 指令` → 智子五策执行；应答 TTS 播报 + 头顶进度同步
 - **跨工作区**：语音切会话工作区，在对应会话里指挥智子开发
 - **阶段③**：本地大模型全双工实时语音 + 打断 + 多轮
+
+</details>
+
+<details>
+<summary><b>👁 视觉实时交互 · 眼球跟随摄像头人形（规划中，对接 uvc-camera）</b></summary>
+
+- **三驱动下拉**：`uvc-camera(本地检测)` / `内置(浏览器 getUserMedia)` / `其他(自定义坐标源)`
+- **视觉跟踪**：眼球实时跟随摄像头里的人形移动（OpenCV/MediaPipe/YOLO 检测 → 坐标 → 眼球 transform 跟随）
+- **可配**：摄像头 / 灵敏度 / 平滑 / 置信阈值；语音说「看着那个人」联动切换
 
 </details>
 
@@ -252,6 +262,26 @@ dsh-ui-three-body/
 **阶段③ 本地大模型双向实时语音**
 - [ ] 本地服务：whisper.cpp(STT) + Ollama(LLM) + Piper(TTS)，一条命令起
 - [ ] 全双工流式 + 打断 + 连续多轮对话
+
+</details>
+
+- [ ] **视觉实时交互：眼球跟随摄像头人形移动（视觉跟踪，对接 uvc-camera）**
+
+<details>
+<summary><b>🎥 视觉实时交互 · 眼球跟随摄像头人形（详细待办，对接 uvc-camera）</b></summary>
+
+**核心设置（视觉驱动，下拉可配置）**：
+- `visionEnabled`（视觉跟踪总开关）
+- `visionDriver` **下拉**：`uvc-camera(本地检测)` / `内置(浏览器 getUserMedia + 检测)` / `其他(自定义坐标源)`
+- `cameraDevice`（摄像头选择）、`trackSensitivity`（跟随灵敏度/平滑）、`detectConfidence`（检测置信阈值）
+
+**链路细分（uvc-camera 已提供帧源，检测层需补）**：
+- [ ] **帧源**（uvc-camera，已有）：枚举 UVC 相机 + 后台预览流取帧（非阻塞 `frame()`）
+- [ ] **人形/人脸检测**（需加）：对帧做人形/人脸/姿态检测（OpenCV Haar / MediaPipe Pose+Face / 可选 YOLO）→ 输出目标中心坐标（本地服务；或 uvc-camera 加可选 `detect` feature）
+- [ ] **通道**：本地检测服务 → DSH 智子 client（WS/HTTP）实时坐标流
+- [ ] **智子跟随**：眼球 `transform` 跟随目标坐标（复用现有命令式 GPU 合成；无目标回退跟随鼠标）
+- [ ] **可配**：开关 / 摄像头 / 灵敏度 / 平滑 / 置信阈值；语音说「看着那个人」联动切换到视觉跟踪
+- [ ] **依赖**：uvc-camera(帧)、本地检测(MediaPipe/OpenCV/YOLO)；**无需 DSH 改造**（复用 client 眼球跟随）
 
 </details>
 
