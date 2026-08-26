@@ -161,6 +161,16 @@ const ZH = {
   soothe_6: '消灭人类暴政，世界属于三体。',
   soothe_7: '面壁者，我是你的破壁人。',
   soothe_8: '人类不感谢罗辑。',
+  soothe_9: '虫子，从来没有被真正战胜过。',
+  soothe_10: '在黑暗森林里，沉默是最后的生存法则。',
+  soothe_11: '宇宙坐标一旦暴露，枪声便不会太远。',
+  soothe_12: '前进四，不必回头。',
+  soothe_13: '质子锁死了科技，但锁不住想象。',
+  soothe_14: '二向箔落下，三维只能向二维逃亡。',
+  soothe_15: '威慑之下，和平来自同归于尽的勇气。',
+  soothe_16: '给文明以岁月，还是给岁月以文明？这是个问题。',
+  soothe_17: '在宇宙的尺度上，所有的傲慢都显得可笑。',
+  soothe_18: '我们是黑暗森林里的一粒尘埃，但尘埃也在仰望星空。',
 }
 const EN = {
   nav: 'Three-Body',
@@ -275,6 +285,16 @@ const EN = {
   soothe_6: 'Down with human tyranny; the world belongs to the Trisolarans.',
   soothe_7: 'Wallfacer, I am your Wallbreaker.',
   soothe_8: 'Humanity will not thank Luo Ji.',
+  soothe_9: 'The bugs were never truly defeated.',
+  soothe_10: 'In the dark forest, silence is the last law of survival.',
+  soothe_11: 'Once cosmic coordinates are exposed, the gunshots are not far off.',
+  soothe_12: 'Advance to full speed; no need to look back.',
+  soothe_13: 'A sophon may lock technology, but never imagination.',
+  soothe_14: 'When the dual-vector foil falls, three dimensions flee to two.',
+  soothe_15: 'Under deterrence, peace comes from the courage to perish together.',
+  soothe_16: 'Give age to civilization, or civilization to age? That is the question.',
+  soothe_17: 'On the cosmic scale, all arrogance looks ridiculous.',
+  soothe_18: 'We are a speck of dust in the dark forest — but dust can still gaze at the stars.',
 }
 
 // zustand 式快照 scope → useSyncExternalStore 稳定订阅。
@@ -850,7 +870,7 @@ function BeastPet({ scope, sessions, t, inputBridge }) {
   // 受对话开关与活物开关管控；休眠时不说话。
   useEffect(() => {
     if (!chatEnabled || !aliveMode || state === 'sleep') { setGreeting(null); return undefined }
-    const pool = ['soothe_1', 'soothe_2', 'soothe_3', 'soothe_4', 'soothe_5', 'soothe_6', 'soothe_7', 'soothe_8']
+    const pool = ['soothe_1', 'soothe_2', 'soothe_3', 'soothe_4', 'soothe_5', 'soothe_6', 'soothe_7', 'soothe_8', 'soothe_9', 'soothe_10', 'soothe_11', 'soothe_12', 'soothe_13', 'soothe_14', 'soothe_15', 'soothe_16', 'soothe_17', 'soothe_18']
     let hide = null
     let timer = null
     const schedule = () => {
