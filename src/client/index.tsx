@@ -1278,6 +1278,10 @@ function BeastSettings({ useBeastSettings, t, scope }) {
   return React.createElement(
     'div',
     { style: { display: 'flex', flexDirection: 'column', gap: 20, padding: 16, maxWidth: 560 } },
+    Field({ label: t('tMode') }, Seg({
+      value: value.mode || 'balanced', onChange: (v) => scope.set('mode', v),
+      options: [['minimal', t('modeMinimal')], ['balanced', t('modeBalanced')], ['full', t('modeFull')]],
+    })),
     Row({ label: t('tField'), hint: t('tFieldHint'), checked: value.enabled !== false, onChange: (v) => scope.set('enabled', v) }),
     Row({ label: t('tAiMode'), hint: t('tAiModeHint'), checked: value.aiMode === true, onChange: (v) => scope.set('aiMode', v) }),
     Row({ label: t('tPet'), hint: t('tPetHint'), checked: value.petEnabled !== false, onChange: (v) => scope.set('petEnabled', v) }),
@@ -1300,10 +1304,6 @@ function BeastSettings({ useBeastSettings, t, scope }) {
     })),
     Row({ label: t('tGhostRoam'), hint: t('tGhostRoamHint'), checked: value.ghostRoam !== false, onChange: (v) => scope.set('ghostRoam', v) }),
     Row({ label: t('tGhostBlink'), hint: t('tGhostBlinkHint'), checked: value.ghostBlink !== false, onChange: (v) => scope.set('ghostBlink', v) }),
-    Field({ label: t('tMode') }, Seg({
-      value: value.mode || 'balanced', onChange: (v) => scope.set('mode', v),
-      options: [['minimal', t('modeMinimal')], ['balanced', t('modeBalanced')], ['full', t('modeFull')]],
-    })),
     Field({ label: t('tLang') }, Seg({
       value: value.lang || 'zh', onChange: (v) => scope.set('lang', v),
       options: [['zh', t('langZh')], ['en', t('langEn')]],
