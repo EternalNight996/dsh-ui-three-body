@@ -1,3 +1,13 @@
+<div align="center">
+  <h3>🔥 智子不只是设计 copilot——它还要「开口即干 · 眼随人动」</h3>
+  <p>
+    <b>🎙 语音实时交互</b>（内置 / 本地大模型 whisper+Ollama+Piper，三驱动下拉可选） ·
+    <b>👁 视觉实时交互</b>（眼球跟随摄像头人形，对接 uvc-camera） ·
+    <b>🧠 产品设计 copilot</b>（五策 + 质量闸，不过闸不交付）
+  </p>
+  <sub>↑ 规划中亮点，落地中</sub>
+</div>
+
 # 👁️ 三体智子 dsh-ui-three-body — 给 DeepSeek Harness 装上「产品设计 copilot」
 
 <p align="center">
