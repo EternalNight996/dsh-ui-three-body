@@ -300,6 +300,7 @@ dsh-ui-three-body/
 
 ## 📦 发布记录
 
+- **v0.2.7**：**仓库清理 + 资产压缩 + npm 包瘦身**：删 snake.html / restart-dsh.ps1 / assets/pet.svg / docs/{ANALYZE,ARCHITECTURE,MASCOT,CHARACTER360_CODE,DEEP_THEME_SPEC,TRAINING}.md / .dsh-vision-router；4 张演示图转 webp（**3.8MB → 1.1MB，-71%**）；npm 包 **3.9MB → 1.2MB（-69%）**；`files` 白名单 11 文件。
 - **v0.2.6**：README 追补 v0.2.5 硬化说明；内核权威背书表加入 [multica-ai/andrej-karpathy-skills](https://github.com/multica-ai/andrej-karpathy-skills)（**207K star / 21K fork**，现象级）。
 - **v0.2.5**：内核系统性硬化 9 项：A1 tone minimal 修复 / A2 契约 status 枚举 / B1 EN 契约禁词修正 / B2 S 档实际轻量化 / **B3 EN 全文同步 ZH** / **C1 新增铁律 4 外科手术式 diff**（源自 Karpathy #3）/ C2 L 无 benchmark 硬闸回退明确 / D1 persona 注入防护(长度≤16+剥控制字符) / E1 质量闸诚实边界。
 - **v0.2.4**：README 总标题上方加「视觉与语言交互」热点横幅。

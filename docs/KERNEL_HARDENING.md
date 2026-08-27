@@ -2,7 +2,7 @@
 
 > 本文档记录对 `lib/kernel.js` 智子内核（注入 system prompt 的分段文案）的**系统性安全审计**与**硬化修复**。
 > 审计触发于上线累积 + Karpathy LLM 编码恶习反思后；修复落地于 v0.2.5。
-> 范围：仅覆盖内核文案、模板插值、规则一致性；不覆盖 client UI / host 注入链路（另有 ARCHITECTURE.md）。
+> 范围：仅覆盖内核文案、模板插值、规则一致性；不覆盖 client UI / host 注入链路（README「🧬 核心内核设计」「🛠 开发 / 构建 / 测试」段已覆盖整体架构）。
 
 ---
 
@@ -171,7 +171,8 @@ if (toneLine) {
 | --- | --- |
 | **v0.2.5** | 本文档总结的 9 项硬化全部落地 |
 | **v0.2.6** | README 追补 v0.2.5 硬化说明；权威背书表加入 Karpathy（207K★，Surgical Changes 思想来源） |
-| 计划 **v0.2.7+** | 评测集（5-10 任务对比有/无内核）/ 五策按需 skill 化（降每轮 token）/ kernelOverride UI 风险提示 |
+| **v0.2.7** | 仓库清理 + 资产 webp 压缩 + npm 包瘦身：删除 snake.html / restart-dsh.ps1 / assets/pet.svg / docs/{ANALYZE,ARCHITECTURE,MASCOT,CHARACTER360_CODE,DEEP_THEME_SPEC,TRAINING}.md / .dsh-vision-router；4 张演示图转 webp（3.8MB → 1.1MB，-71%）；npm 包 3.9MB → 1.2MB（-69%）；package.json `files` 白名单 11 文件。 |
+| 计划 **v0.2.8+** | 评测集（5-10 任务对比有/无内核）/ 五策按需 skill 化（降每轮 token）/ kernelOverride UI 风险提示 |
 
 ---
 
@@ -182,5 +183,5 @@ if (toneLine) {
 - [superpowers](https://github.com/obra/superpowers) —— 智子 M 档"计划过审"
 - [LangGraph](https://github.com/langchain-ai/langgraph) —— L 档编排/状态机
 - [DSPy](https://github.com/stanfordnlp/dspy) / [Instructor](https://github.com/567-labs/instructor) / [Outlines](https://github.com/outlines-dev/outlines) / [promptfoo](https://github.com/promptfoo/promptfoo) / [DeepEval](https://github.com/confident-ai/deepeval) —— 后续评测/结构化增强的候选技术
-- `docs/ARCHITECTURE.md` —— 插件整体架构（host/client/inject/settings）
-- `docs/ANALYZE.md` —— 三件套组合（ask_user_question / create_goal / todo_write）
+- README「🧬 核心内核设计」段 —— 五策 + 质量闸 + 借鉴的 star 项目（含 Karpathy 207K★）
+- README「🛠 开发 / 构建 / 测试」段 —— 目录结构与构建流程
