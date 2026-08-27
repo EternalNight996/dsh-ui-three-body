@@ -84,7 +84,8 @@ flowchart LR
 | 内核模块 | 自研实现 | 借鉴（热门项目） | 借了什么 |
 |---|---|---|---|
 | **规模路由（S/M/L）** | 三问定档（改动面/风险面/交付面） | T-shirt sizing（PM/工程通用） | 按任务大小选策略，流程跟着规模走 |
-| **最懒编码（S 档）** | YAGNI、stdlib 优先、不加未请求抽象 | [ponytail](https://github.com/DietrichGebert/ponytail)（~5k+） | 小任务只写该写的，消灭过度工程 |
+| **最懒编码（S 档）** | YAGNI、stdlib 优先、不加未请求抽象（**源自 Karpathy**） | [ponytail](https://github.com/DietrichGebert/ponytail)（~5k+） | 小任务只写该写的，消灭过度工程 |
+| **外科手术式 diff（铁律 4）** | 外科手术式修改：只改必须改的；不改无关代码/注释/格式；不重构没坏的部分；只清自己造成的孤儿；每行 diff 必须可回溯到{{master}}需求 | [multica-ai/andrej-karpathy-skills](https://github.com/multica-ai/andrej-karpathy-skills)（**207K★ / 21K fork**，现象级；Karpathy #3） | 编码洁癖：消除 drive-by 重构、随手优化、孤儿不删 |
 | **计划过审（M 档）** | 契约准/驳门，改只改差异 | [superpowers](https://github.com/obra/superpowers)（~30k+） | 先「计划→过审→实现」再动手 |
 | **编排/状态机（L 档）** | 可循环/分支/重试/持久化 | [LangGraph](https://github.com/langchain-ai/langgraph)（~15k+） | 长任务可控、可断点续 |
 | **可度量优化（L 档）** | 声明式 + 可迭代 | [DSPy](https://github.com/stanfordnlp/dspy)（~22k+） | 方案可量化、可 benchmark 驱动 |
@@ -299,6 +300,9 @@ dsh-ui-three-body/
 
 ## 📦 发布记录
 
+- **v0.2.6**：README 追补 v0.2.5 硬化说明；内核权威背书表加入 [multica-ai/andrej-karpathy-skills](https://github.com/multica-ai/andrej-karpathy-skills)（**207K star / 21K fork**，现象级）。
+- **v0.2.5**：内核系统性硬化 9 项：A1 tone minimal 修复 / A2 契约 status 枚举 / B1 EN 契约禁词修正 / B2 S 档实际轻量化 / **B3 EN 全文同步 ZH** / **C1 新增铁律 4 外科手术式 diff**（源自 Karpathy #3）/ C2 L 无 benchmark 硬闸回退明确 / D1 persona 注入防护(长度≤16+剥控制字符) / E1 质量闸诚实边界。
+- **v0.2.4**：README 总标题上方加「视觉与语言交互」热点横幅。
 - **v0.2.3**：**语音实时交互 + 跨会话工作区**立项并列入热点卖点（三驱动下拉配置/whisper+Ollama+Piper 规划）；设置「内核档位」移到顶部；内置 18 条《三体》名句问候；头顶进度文本加宽；内核新增**自愈续跑**(API 重试/换provider/等待兜底/断点续跑) + **契约结构化** + **验收=可执行断言**；README 重构为 dsh-memory 排版（痛点/内核权威背书/五策质量闸）。
 - **v0.2.2**：问候扩充 18 条《三体》名句(含微调) / 头顶文本加宽 / 自愈续跑落地 / 契约结构化 / 语音待办立项。
 - **v0.2.1**：目标显示精简(进度+短标题) / 问候改《三体》名句(去自主意识词) / 内核五步改名「智子五策」+ UI 前置三选一 / 皮肤炫光升级 / skill-catalog 瘦身 / README 重构(痛点+内核权威背书+五策质量闸)。
