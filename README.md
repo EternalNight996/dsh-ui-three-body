@@ -28,7 +28,7 @@
 ---
 
 <p align="center">
-  <img src="assets/screen/sophon-demo.gif" width="880" alt="智子演示：悬浮大眼睛 + 动态皮肤 + 菜单" />
+  <img src="assets/screen/sophon-demo.webp" width="880" alt="智子演示：悬浮大眼睛 + 动态皮肤 + 菜单" />
   <br/><em>悬浮智子：11 款动态皮肤 · 瞳孔旋转 · 幽灵闪现（动态演示）</em>
 </p>
 
@@ -150,11 +150,11 @@ flowchart LR
 </details>
 
 <p align="center">
-  <img src="assets/screen/sophon-core.png" width="840" alt="智子核心：头顶目标进度 + 智子五策面板" />
+  <img src="assets/screen/sophon-core.webp" width="840" alt="智子核心：头顶目标进度 + 智子五策面板" />
   <br/><em>智子核心：悬停展开「目标显示」——头顶进度 + 智子五策，任务步列表实时同步</em>
 </p>
 <p align="center">
-  <img src="assets/screen/sophon-target-talk.png" width="420" alt="智子三体台词气泡" />
+  <img src="assets/screen/sophon-target-talk.webp" width="420" alt="智子三体台词气泡" />
   <br/><em>智子三体台词：紫色智子 + 《三体》名句「给岁月以文明，而不是给文明以岁月。」</em>
 </p>
 

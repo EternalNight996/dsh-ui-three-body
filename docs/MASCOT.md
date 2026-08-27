@@ -9,7 +9,7 @@
 >
 > 完全国内可用、零外部服务、client bundle 仅 ~18KB。**想更好看**：用 Figma/即时设计画一个 SVG 萌宠，替换 `BeastMascot` 里的矢量（保持 viewBox 96×96），动画逻辑一行都不用动。
 
-## 当初的备选方案（供参考）
+## 备选方案（仅作记录，当前不计划实施）
 
 | 方案 | 表现力 | 体积 | 落地成本 | 适用 |
 | --- | --- | --- | --- | --- |
@@ -36,15 +36,15 @@
 
 ## 推荐路径
 
-1. **短期（本周）**：保持 emoji 三态（已可用），只把 `assets/pet.svg` 换成你自己的立绘，`BeastPet` 里的 `face` 改成 `<img src={...}>`。
-2. **中期**：上 **Lottie**（JSON 动画），按 6 态准备 6 段动画，`face` 换成 `<lottie-player>`（或引入 `lottie-web`，标记为 external）。
+1. **保持现状**（程序化 SVG）：emoji 三态 + CSS 动画，已经够用，零成本。
+2. **若想更好看**：上 **Lottie**（JSON 动画），按 6 态准备 6 段动画，`face` 换成 `<lottie-player>`（或引入 `lottie-web`，标记为 external）。
 3. **若想真 3D**：用 **VRM + three.js**，`BeastPet` 挂一个 `<canvas>` 渲染模型；three.js 走 peerDependency（dsh 运行时可能已带，避免重复打包）。
 
 关键：无论哪种，都只改 `BeastPet` 一个组件的渲染层，情绪态信号（`enabled` / `running`）已经接好，不用动 host。
 
-## 落地清单（需要你补充）
+## 落地清单
 
-- [ ] 决定用哪个方案（推荐 ① Lottie 或 ② 像素）
+- [ ] 决定用哪个方案（推荐 ② Lottie 或 ③ 像素）
 - [ ] 出 3-6 张表情/动画
-- [ ] 替换 `assets/pet.svg` + `BeastPet` 的 `face` 渲染
+- [ ] （按选型替换 `BeastMascot` 的 `face` 渲染）
 - [ ] （可选）接 `sessions` 事件流做「思考/完成」细分态

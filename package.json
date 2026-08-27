@@ -22,12 +22,14 @@
   },
   "files": [
     "index.js",
-    "lib",
-    "assets",
-    "docs",
+    "lib/kernel.js",
+    "lib/client.js",
+    "assets/screen/sophon-demo.webp",
+    "assets/screen/sophon-core.webp",
+    "assets/screen/sophon-preview.webp",
+    "assets/screen/sophon-target-talk.webp",
     "cordis.patch.yml",
     "README.md",
-    "PUBLISH.md",
     "LICENSE"
   ],
   "engines": {
