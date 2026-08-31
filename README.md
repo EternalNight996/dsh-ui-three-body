@@ -102,7 +102,7 @@ flowchart LR
 <details>
 <summary><b>🧠 智子内核：五策 + 规模路由 + 质量闸</b></summary>
 
-- **三铁律**：第一性原理 / 目标导向 / 惜 token
+- **五大铁律**：第一性原理 / 目标导向 / 惜 token / 外科手术式 diff / **大白话律**（只说大白话、禁客套复述空话、结论先行，准确永远优先于简短）
 - **智子五策**：展开·问清 → 降维·方案 → 面壁·契约 → 水滴·执行 → 收拢·交付（一次问清、一次定稿、绝不反复问）
 - **规模路由（S/M/L）**：三问定档，小任务最懒、大任务全量；边做边升/降档
 - **质量闸**：①真验证环 ②验收=可执行断言 ③自评达标(有benchmark才启用) ④人审+回滚+契约外停手——**不过闸不交付**
@@ -300,6 +300,7 @@ dsh-ui-three-body/
 
 ## 📦 发布记录
 
+- **v0.2.10**：内核新增**铁律 5「大白话律」**：只说大白话，干净整洁、干练极简；禁客套/寒暄/复述/自夸/空话；结论先行，能一行不说两行；不可逆风险必须说清，**准确永远优先于简短**。ZH/EN × minimal/balanced/full 六档全同步。
 - **v0.2.7**：**仓库清理 + 资产压缩 + npm 包瘦身**：删 snake.html / restart-dsh.ps1 / assets/pet.svg / docs/{ANALYZE,ARCHITECTURE,MASCOT,CHARACTER360_CODE,DEEP_THEME_SPEC,TRAINING}.md / .dsh-vision-router；4 张演示图转 webp（**3.8MB → 1.1MB，-71%**）；npm 包 **3.9MB → 1.2MB（-69%）**；`files` 白名单 11 文件。
 - **v0.2.6**：README 追补 v0.2.5 硬化说明；内核权威背书表加入 [multica-ai/andrej-karpathy-skills](https://github.com/multica-ai/andrej-karpathy-skills)（**207K star / 21K fork**，现象级）。
 - **v0.2.5**：内核系统性硬化 9 项：A1 tone minimal 修复 / A2 契约 status 枚举 / B1 EN 契约禁词修正 / B2 S 档实际轻量化 / **B3 EN 全文同步 ZH** / **C1 新增铁律 4 外科手术式 diff**（源自 Karpathy #3）/ C2 L 无 benchmark 硬闸回退明确 / D1 persona 注入防护(长度≤16+剥控制字符) / E1 质量闸诚实边界。
