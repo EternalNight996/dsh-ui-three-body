@@ -51,6 +51,7 @@
     "build:client": "node build.mjs",
     "prepublishOnly": "node build.mjs",
     "test": "node --test tests/*.test.mjs",
+    "verify:remote": "node tools/verify-remote.mjs",
     "sync": "node scripts/sync-profile.mjs"
   },
   "dependencies": {
