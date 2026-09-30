@@ -13,8 +13,13 @@ import z from '@deepseek-ai/schemastery'
 import { defineTool } from '@deepseek-ai/dsh-tools'
 import { BlockAssembler, createUserMessage } from '@deepseek-ai/dsh-llm'
 import { kernelForMode, KERNEL_SECTION, KERNEL_ORDER } from './lib/kernel.js'
+import { bindSettings } from './lib/settings-host.js'
+import { registerStateRoute } from './lib/state-route.js'
 
 export const name = 'beast-tamer'
+// `settings` 保留硬依赖：本插件有设置页且要持久化，不该退化成只读默认值。
+// 两代**形状差异**（0.1.x 注册表 / 0.2.x 表单服务）由 ./lib/settings-host.js 在运行时嗅探适配，
+// 因此同一条 inject 声明在 0.1.7 与 0.2.0 上都成立。
 export const inject = ['systemPrompt', 'settings']
 
 export const Config = z.object({
@@ -42,8 +47,12 @@ export const Config = z.object({
 })
 
 export function apply(ctx, config) {
-  // base 传 composition 配置：settings 层序 = schema 默认值 → base(config) → 用户覆盖。
-  const settings = ctx.settings.register('beast-tamer', Config, { base: config ?? {} })
+  // 设置命名空间：经兼容层绑定，同一份业务代码同时适配两代 DSH settings 形状。
+  // 层序 = schema 默认值 → base(config) → 用户覆盖。
+  const settings = bindSettings(ctx, Config, config, {
+    namespace: 'beast-tamer',
+    label: 'beast-tamer',
+  })
 
   ctx.effect(() => {
     let disposeSection = null
@@ -75,7 +84,7 @@ export function apply(ctx, config) {
     }
 
     refresh(settings.get())
-    const unwatch = settings.watch(refresh)
+    const unwatch = settings.watch(() => refresh(settings.get()))
 
     return () => {
       if (typeof unwatch === 'function') unwatch()
@@ -89,9 +98,11 @@ export function apply(ctx, config) {
 
   // 可选：beast_analyze 需求剖析工具（联动当前模型）。默认关，尊重「最少 token」；
   // 需要「一键生成规范 markdown 计划」时在设置页开启。
+  // 注意：本工具只在挂载时按当前设置决定是否注册；挂载后改开关需重启宿主才生效（原有语义）。
   const llm = ctx.get('llm')
   const tools = ctx.get('tools')
-  if ((settings.get() && settings.get().analyzeTool) === true && llm !== undefined && tools !== undefined) {
+  const startup = settings.get()
+  if (startup && startup.analyzeTool === true && llm !== undefined && tools !== undefined) {
     tools.register(defineTool({
       name: 'beast_analyze',
       description:
@@ -156,6 +167,17 @@ export function apply(ctx, config) {
       },
     }))
   }
+
+  // ── 本机状态路由：给「桌面宠物」这类外部进程读 DSH 状态用 ────────────────
+  // 官方 /api/* 一律要凭据（实测 401），所以由本插件自己暴露一条公开只读路由。
+  // webServer 是「可能晚到」的服务，必须用 ctx.inject 等它就绪，不能同步 ctx.get。
+  ctx.inject(['webServer'], (child) => {
+    const webServer = child.get('webServer')
+    if (webServer === undefined) return
+    registerStateRoute(child, webServer, {
+      extra: () => ({ petEnabled: (settings.get() ?? {}).petEnabled !== false }),
+    })
+  })
 }
 
 // 取第一个 provider 的旗舰模型（目录通常旗舰在前）。与内核一样复用 dsh 已配模型。

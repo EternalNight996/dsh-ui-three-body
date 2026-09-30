@@ -3,10 +3,12 @@
 // - `shell.overlay`：悬浮智子（最右侧中间、长按拖拽、点击开关、情绪态：休眠/待命/工作中）。
 // - `settings.section`：设置面板顶层「三体」分区（与「插件」同层），配置内核与开关。
 //
-// 通过 `settingsScope` 读写 host 侧的 `beast-tamer` 设置命名空间（持久化到 settings 文件）；
+// 通过设置适配层读写 host 侧的 `beast-tamer` 设置命名空间（持久化到 settings 文件）：
+// DSH 0.1.x 走 `ctx.settingsScope`，0.2.x 走 `ctx.configForms`，由 ./settings-adapter.js 归一；
 // 通过 `locale` 做中英双语；通过 `sessions` 读取当前会话 running 状态驱动情绪态。
 
 import React, { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { createSettingsScope } from './settings-adapter.js'
 
 const NS = 'beast-tamer'
 
@@ -43,9 +45,11 @@ const CSS = `
 @keyframes beast-ghost-idle-rest { 0%,100% { transform: scale(1); } 50% { transform: scale(0.96); } }
 `
 
-// settingsScope.bind 内部会 ctx.get('connection') / ctx.get('remote')，
-// sessions 提供当前会话 running 信号；locale 提供中英双语。
-export const inject = ['settingsScope', 'slots', 'connection', 'remote', 'sessions', 'locale']
+// 硬依赖只留两代都存在、且本插件确实要用的服务。**不再声明 `settingsScope`**：
+// DSH 0.2.0 已删除该服务（改用 ctx.configForms），硬声明会让插件在 0.2.0 下永远无法激活。
+// 设置源由 ./settings-adapter.js 在运行时按能力探测（ctx.get），两侧都缺也只是退化为只读默认值。
+// slots/connection/remote/sessions/locale 在 0.1.7 与 0.2.0 均存在。
+export const inject = ['slots', 'connection', 'remote', 'sessions', 'locale']
 
 // 中英词典（locale 命名空间）。键扁平，zh 兜底 + 缺失回退到键本身。
 const ZH = {
@@ -1414,8 +1418,10 @@ export function apply(ctx) {
   ctx.effect(() => ctx.locale.register(NS, { zh: ZH, en: EN }), 'beast-tamer: locale dictionaries')
   const t = ctx.locale.bind(NS)
 
-  // 绑定一次设置命名空间 scope（稳定引用），萌宠与设置页共享同一份快照。
-  const scope = ctx.settingsScope.bind({ namespace: NS })
+  // 绑定设置作用域（稳定引用，永不 null）：0.2 走 configForms、0.1 走 settingsScope，
+  // 由适配层归一；两侧都缺时是安全空实现（默认值渲染，写操作静默）。
+  // 惰性解析：即使服务晚于 apply 就绪，也会在此时自动接管。
+  const scope = createSettingsScope(ctx, NS)
   // 可写桥：InputBridge 会把当前会话的 inputActions.setDraft 存到这里，供萌宠菜单「应用到输入框」。
   const inputBridge = { setDraft: null, pending: null }
   const petInject = { scope, sessions: ctx.sessions, t, inputBridge }

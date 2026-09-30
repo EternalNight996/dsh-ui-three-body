@@ -181,6 +181,43 @@ dsh plugin --profile web add F:/MyApp/eternal/dsh-ui-three-body
 
 装完**重启 dsh web**：悬浮智子出现在屏幕右侧，点击弹菜单、长按拖拽；设置 → 三体 可配全部选项。
 
+### 🧩 DSH 版本兼容（0.1.x 与 0.2.x 双线）
+
+| 项 | 声明 / 实现 |
+|---|---|
+| 强制闸门 | `peerDependencies`：`@deepseek-ai/dsh-tools` / `@deepseek-ai/dsh-llm` 均为 `>=0.1.0-rc.7 <0.3.0` |
+| 人类可读台账 | `engines.dsh` = `dsh.compatibility.dsh` = `>=0.1.5-alpha.2 <0.3.0` |
+| 实测通过线 | `0.1.5-alpha.2` / `0.1.5-rc.2` / `0.1.7-rc.2` / `0.2.0-rc.1` / `0.2.0-rc.2` |
+
+**为什么需要专门适配**：DSH 在 `0.2.0` 做了一次设置系统的破坏性替换
+（官方 commit「project volatile Config through profile-backed forms」），**同时**改掉了两端：
+
+| 端 | 0.1.x | 0.2.x | 本插件的处理 |
+|---|---|---|---|
+| host | `ctx.settings.register(ns, Config, {base})` → `{get, watch, update}` | 无 `register`；`ctx.settings` 是 `SettingsForms`，配置改为 `apply(ctx, config)` 的**活引用** + `loader/volatile-update` | `lib/settings-host.js` 运行时**形状嗅探**，两代收敛成 `{get, watch, update}` |
+| client | `ctx.settingsScope.bind({namespace})` | 服务已删除，改用 `ctx.configForms.get(entryId)` | `src/client/settings-adapter.js` 能力探测 + 惰性解析，两侧都缺则安全降级 |
+
+两个容易忽略但会直接致命的点：
+
+1. **`^0.1.0-rc.7` 挡得住 `0.2.0-rc.2`**。DSH 的兼容预检对 `@deepseek-ai/dsh-*` 逐条跑 `semver.satisfies(运行版本, 区间, { includePrerelease: true })`，范围不放宽就会在安装/启动时被判「不兼容」拒载。
+2. **客户端 `inject` 里留着已下线的服务名会让插件永不激活**（不是报错，是静默不加载）。`settingsScope` 与 `@deepseek-ai/dsh-client-runtime` / `dsh-client-schema-form` 都已下线，必须从声明里删掉。
+3. **`meta.volatile` 必须打**。0.2 的设置页只投影 `volatile` 字段，一个都没有时整页不显示；而 schemastery 3.18.1 **没有** `.volatile()` 方法，链式调用会在 import 期抛错——只能在构造后遍历 `schema.dict` 逐个打标。
+
+`tests/` 下有三组回归测试（`node --test tests/*.test.mjs`）：
+`settings-host`（host 两代形状，含「旧写法必然抛错」锚点）、
+`settings-adapter`（client 两代形状）、
+`metadata-compat`（peer 区间 / client inject 包名 / 发布白名单闸门，用 DSH 运行时里的**真实 semver** 判定）。
+
+> **未在真机验证的部分（诚实声明）**：本机 DSH 运行时是 `0.1.7-rc.2`，没有 `0.2.0-rc.2` 运行环境，
+> 因此 0.2 路径的**端到端**行为（真实 `configForms.get('beast-tamer')` 的快照形状、
+> 真实 `settings.describe()` 的 revision 取值）只有源码级证据与假 ctx 单测，没有实机点击验证。
+> 若升级后发现设置页读到默认值或写不进去，优先核对这两处。
+>
+> 另一个已知边界：客户端适配层是**惰性解析**的。正常情况下 `configForms`/`settingsScope`
+> 都早于本插件挂载，不存在问题；但若某个 profile 下两者都晚于插件挂载就绪，
+> 则首帧会以默认值渲染，且**不会自动补一次渲染**（重新打开设置页或刷新即可）。
+> 之所以不做主动重试，是因为在适配层里挂定时器去"等"服务，代价与不确定性都高于这个极小概率场景。
+
 ### 🧭 插件发现 / 收录标准
 
 仓库已打 **GitHub `dsh-plugin` topic** 并符合社区标准结构，**自动被以下机制发现**（无需手动 PR）：
@@ -300,6 +337,25 @@ dsh-ui-three-body/
 
 ## 📦 发布记录
 
+- **v0.3.0**：**新增本机状态路由，支撑「桌面宠物」独立应用**。
+  新增 `GET /beast-tamer/api/state`（**无需认证、只读**）——官方 `/api/*` 一律要凭据（实测 401），
+  所以由插件自己暴露一条公开路由，把「会话是否在跑 / 待办进度 / 目标轮次 / 标题」给外部进程读。
+  已确认的三条接缝约束并全部遵守：① 路径**避开 `/api` 前缀**（被 client-connection 占用，重叠会撞 `duplicate prefix route`）；
+  ② `webServer.register()` **不是 effect**，必须包在 `ctx.effect(...)` 里，否则插件卸载后路由残留；
+  ③ `webServer` 可能晚于 apply 就绪，用 `ctx.inject(['webServer'], …)` 等它，不能同步 `ctx.get`。
+  running 取 `ctx.get('agents')` 的 `Agent.status === 'running'`（`SessionStore` 上没有 running 概念）；
+  进度取自 `sessionProjections.snapshot(session, ['goal','todos','title'])`，未装载的投影单元会让 key 缺席，一律按 null 处理。
+  每处服务调用单独降级，任一步失败都只影响该字段，绝不把 500 抛给轮询方。
+  配套应用见 [`dsh-pet-sophon`](../dsh-pet-sophon)（系统桌面宠物，把智子放到 DSH 窗口外自由活动）。
+  测试：新增 `tests/state-route.test.mjs`（12 用例），三体合计 **42 用例全绿**。
+- **v0.2.11**：**DSH 0.2.x 兼容适配（0.1.7 与 0.2.0 双线）**。DSH 0.2.0 的破坏性替换同时改了两端，本版逐项修复：
+  ① host 侧新增 `lib/settings-host.js`——运行时形状嗅探，把「0.1.x 命名空间注册表」与「0.2.x SettingsForms + 活引用 + `loader/volatile-update`」收敛成同一契约（`get/watch/update`），含 revision 冲突自动重试；
+  ② 给 `Config` 每个字段打 `meta.volatile`（0.2 设置页只投影 volatile 字段，不打标整页不显示；且必须遍历 `schema.dict` 打标，**不能**链式 `.volatile()`——3.18.1 没这个方法，会在 import 期炸）；
+  ③ client 侧新增 `src/client/settings-adapter.js`——`ctx.configForms`（0.2）与 `ctx.settingsScope`（0.1）双形状归一，**永不返回 null**（空快照用单例引用，避免 `useSyncExternalStore` 死循环）；
+  ④ 从客户端硬依赖里**删除已下线的 `settingsScope`**（留着会让插件在 0.2.0 下永远无法激活，且静默不报错）；
+  ⑤ peer 区间从 `^0.1.0-rc.7` 放宽为 `>=0.1.0-rc.7 <0.3.0`（原区间经真实 semver 实测**挡得住** 0.2.0-rc.2），补 `engines.dsh` 与 `dsh.compatibility` 台账，`dsh.client.inject` 清掉已下线包名；
+  ⑥ 新增三组回归测试（30 用例）：host 两代形状（含「旧写法必然抛错」锚点）、client 两代形状、元数据闸门（peer 区间 / inject 包名 / 发布白名单，用 DSH 运行时真实 semver 判定）。
+  诚实边界：本机运行时为 0.1.7-rc.2，0.2 路径无真机端到端验证（详见上方兼容章节）。
 - **v0.2.10**：内核新增**铁律 5「大白话律」**：只说大白话，干净整洁、干练极简；禁客套/寒暄/复述/自夸/空话；结论先行，能一行不说两行；不可逆风险必须说清，**准确永远优先于简短**。ZH/EN × minimal/balanced/full 六档全同步。
 - **v0.2.7**：**仓库清理 + 资产压缩 + npm 包瘦身**：删 snake.html / restart-dsh.ps1 / assets/pet.svg / docs/{ANALYZE,ARCHITECTURE,MASCOT,CHARACTER360_CODE,DEEP_THEME_SPEC,TRAINING}.md / .dsh-vision-router；4 张演示图转 webp（**3.8MB → 1.1MB，-71%**）；npm 包 **3.9MB → 1.2MB（-69%）**；`files` 白名单 11 文件。
 - **v0.2.6**：README 追补 v0.2.5 硬化说明；内核权威背书表加入 [multica-ai/andrej-karpathy-skills](https://github.com/multica-ai/andrej-karpathy-skills)（**207K star / 21K fork**，现象级）。
